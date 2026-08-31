@@ -30,16 +30,16 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/reports")({
   head: () => ({
     meta: [
-      { title: "Rapports — Focus Replica" },
+      { title: "Reports — Focus Replica" },
       {
         name: "description",
         content:
-          "Rapports de temps : résumé, utilisation, charge de travail, rentabilité, journaux et temps libre.",
+          "Time reports: summary, utilization, workload, profitability, time logs and time off.",
       },
-      { property: "og:title", content: "Rapports — Focus Replica" },
+      { property: "og:title", content: "Reports — Focus Replica" },
       {
         property: "og:description",
-        content: "Résumé, charge de travail et rentabilité sur données mockées.",
+        content: "Summary, workload and profitability on mock data.",
       },
     ],
   }),
@@ -47,24 +47,24 @@ export const Route = createFileRoute("/reports")({
 });
 
 const TABS = [
-  "Résumé",
-  "Utilisation",
-  "Charge de travail",
-  "Rentabilité",
-  "Journaux de temps",
-  "Temps libre",
+  "Summary",
+  "Utilization",
+  "Workload",
+  "Profitability",
+  "Time logs",
+  "Time off",
 ];
 
 function ReportsScreen() {
-  const [tab, setTab] = useState<string>("Résumé");
+  const [tab, setTab] = useState<string>("Summary");
 
   return (
     <div className="pb-12">
       <div className="flex items-center gap-3 px-7 pb-3 pt-5">
-        <h1 className="text-2xl font-semibold tracking-tight">Rapports</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Reports</h1>
         <button className="pill ml-auto">
           <Download className="size-3.5" />
-          Exporter
+          Export
           <ChevronDown className="size-3.5 text-muted-foreground" />
         </button>
       </div>
@@ -91,17 +91,17 @@ function ReportsScreen() {
         </div>
         <button className="pill">
           <Filter className="size-3.5 text-muted-foreground" />
-          Filtres
+          Filters
         </button>
-        <button className="pill">Aujourd'hui</button>
+        <button className="pill">Today</button>
         <button className="pill">
           <Plus className="size-3.5" />
-          Filtrer
+          Filter
         </button>
         <div className="ml-auto flex items-center gap-2">
           <button className="pill">
             <Wallet className="size-3.5 text-muted-foreground" />
-            Affiché en USD
+            Displayed in USD
             <ChevronDown className="size-3.5 text-muted-foreground" />
           </button>
           <button className="text-muted-foreground transition-colors hover:text-foreground">
@@ -111,12 +111,12 @@ function ReportsScreen() {
       </div>
 
       <div className="space-y-5 px-7">
-        {tab === "Résumé" && <SummaryTab />}
-        {tab === "Utilisation" && <UtilizationTab />}
-        {tab === "Charge de travail" && <WorkloadTab />}
-        {tab === "Rentabilité" && <ProfitabilityTab />}
-        {tab === "Journaux de temps" && <TimeLogsTab />}
-        {tab === "Temps libre" && <TimeOffTab />}
+        {tab === "Summary" && <SummaryTab />}
+        {tab === "Utilization" && <UtilizationTab />}
+        {tab === "Workload" && <WorkloadTab />}
+        {tab === "Profitability" && <ProfitabilityTab />}
+        {tab === "Time logs" && <TimeLogsTab />}
+        {tab === "Time off" && <TimeOffTab />}
       </div>
     </div>
   );
@@ -137,14 +137,14 @@ function SummaryTab() {
     <>
       <StatRow
         items={[
-          { label: "Temps enregistré", value: weekSummary.tracked },
-          { label: "Temps facturable", value: weekSummary.billableShare },
-          { label: "Montant", value: weekSummary.amount },
-          { label: "Heures moyennes par jour", value: totals.avgPerDay },
+          { label: "Tracked time", value: weekSummary.tracked },
+          { label: "Billable time", value: weekSummary.billableShare },
+          { label: "Amount", value: weekSummary.amount },
+          { label: "Average hours per day", value: totals.avgPerDay },
         ]}
       />
       <Card>
-        <h2 className="pb-6 text-base font-semibold">Temps facturable vs non facturable</h2>
+        <h2 className="pb-6 text-base font-semibold">Billable vs non-billable time</h2>
         <BarChart />
         <div className="flex items-center justify-center gap-6 pt-16 text-xs text-muted-foreground">
           <span className="flex items-center gap-2">
@@ -157,16 +157,16 @@ function SummaryTab() {
       </Card>
       <Card className="p-0">
         <div className="flex items-center px-5 py-4">
-          <h2 className="text-base font-semibold">Répartition de Membre et tâche</h2>
+          <h2 className="text-base font-semibold">Member and task breakdown</h2>
         </div>
         <table className="w-full text-sm">
           <thead>
             <tr className="border-y border-border">
-              <th className="label-caps px-5 py-2.5 text-left">Projet</th>
+              <th className="label-caps px-5 py-2.5 text-left">Project</th>
               <th className="label-caps px-5 py-2.5 text-left">Client</th>
-              <th className="label-caps px-5 py-2.5 text-right">Temps enregistré</th>
-              <th className="label-caps px-5 py-2.5 text-right">Entrées</th>
-              <th className="label-caps px-5 py-2.5 text-right">Montant</th>
+              <th className="label-caps px-5 py-2.5 text-right">Tracked time</th>
+              <th className="label-caps px-5 py-2.5 text-right">Entries</th>
+              <th className="label-caps px-5 py-2.5 text-right">Amount</th>
             </tr>
           </thead>
           <tbody>
@@ -248,25 +248,25 @@ function WorkloadTab() {
     <>
       <Card>
         <div className="flex items-center gap-2 pb-6">
-          <h2 className="text-base font-semibold">Suis-je surchargé de travail ?</h2>
-          <span className="pill !py-1 text-xs">Cible : 8h / jour</span>
+          <h2 className="text-base font-semibold">Am I overworked?</h2>
+          <span className="pill !py-1 text-xs">Target: 8h / day</span>
         </div>
         <BarChart showTarget />
         <div className="flex items-center justify-center gap-6 pt-16 text-xs text-muted-foreground">
           <span className="flex items-center gap-2">
-            <span className="h-0.5 w-4 bg-warning" /> Heures de travail cible
+            <span className="h-0.5 w-4 bg-warning" /> Target working hours
           </span>
           <span className="flex items-center gap-2">
-            <span className="size-2.5 rounded-[3px] bg-accent" /> Temps enregistré
+            <span className="size-2.5 rounded-[3px] bg-accent" /> Tracked time
           </span>
         </div>
       </Card>
       <StatRow
         items={[
-          { label: "Temps enregistré", value: weekSummary.tracked },
-          { label: "Capacité de la semaine", value: "40h" },
-          { label: "Écart", value: "-29h 45m", hint: "sous la capacité" },
-          { label: "Heures moyennes par jour", value: totals.avgPerDay },
+          { label: "Tracked time", value: weekSummary.tracked },
+          { label: "Weekly capacity", value: "40h" },
+          { label: "Gap", value: "-29h 45m", hint: "under capacity" },
+          { label: "Average hours per day", value: totals.avgPerDay },
         ]}
       />
     </>
@@ -278,23 +278,23 @@ function ProfitabilityTab() {
     <>
       <StatRow
         items={[
-          { label: "Revenu", value: profitability.revenue },
-          { label: "Coût", value: profitability.cost },
+          { label: "Revenue", value: profitability.revenue },
+          { label: "Cost", value: profitability.cost },
           { label: "Profit", value: profitability.profit },
-          { label: "Marge", value: profitability.margin, hint: "cible 40 %" },
+          { label: "Margin", value: profitability.margin, hint: "40 % target" },
         ]}
       />
       <Card className="border-warning/40">
         <div className="flex gap-3">
           <TriangleAlert className="size-5 shrink-0 text-warning" />
           <div className="text-sm">
-            <div className="font-semibold">Données manquantes</div>
+            <div className="font-semibold">Missing data</div>
             <ul className="list-disc space-y-1 pl-5 pt-2 text-muted-foreground">
               <li>
-                Membres sans taux de coût : {profitability.missingCostRates.join(", ")}
+                Members with no cost rate : {profitability.missingCostRates.join(", ")}
               </li>
               <li>
-                Projets facturables sans taux actif :{" "}
+                Billable projects with no active rate :{" "}
                 {profitability.missingProjectRates.join(", ")}
               </li>
             </ul>
@@ -305,10 +305,10 @@ function ProfitabilityTab() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border">
-              <th className="label-caps px-5 py-2.5 text-left">Projet</th>
-              <th className="label-caps px-5 py-2.5 text-right">Taux</th>
-              <th className="label-caps px-5 py-2.5 text-right">Facturable</th>
-              <th className="label-caps px-5 py-2.5 text-right">Revenu</th>
+              <th className="label-caps px-5 py-2.5 text-left">Project</th>
+              <th className="label-caps px-5 py-2.5 text-right">Rate</th>
+              <th className="label-caps px-5 py-2.5 text-right">Billable</th>
+              <th className="label-caps px-5 py-2.5 text-right">Revenue</th>
             </tr>
           </thead>
           <tbody>
@@ -336,20 +336,20 @@ function UtilizationTab() {
     <>
       <StatRow
         items={[
-          { label: "Taux d'utilisation", value: `${utilization.billableShare} %` },
-          { label: "Cible", value: `${utilization.target} %` },
-          { label: "Temps facturable", value: formatH(totals.billable) },
-          { label: "Temps enregistré", value: formatH(totals.tracked) },
+          { label: "Utilization rate", value: `${utilization.billableShare} %` },
+          { label: "Target", value: `${utilization.target} %` },
+          { label: "Billable time", value: formatH(totals.billable) },
+          { label: "Tracked time", value: formatH(totals.tracked) },
         ]}
       />
       <Card className="p-0">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border">
-              <th className="label-caps px-5 py-2.5 text-left">Membre</th>
-              <th className="label-caps px-5 py-2.5 text-right">Temps enregistré</th>
-              <th className="label-caps px-5 py-2.5 text-right">Facturable</th>
-              <th className="label-caps px-5 py-2.5 text-right">Utilisation</th>
+              <th className="label-caps px-5 py-2.5 text-left">Member</th>
+              <th className="label-caps px-5 py-2.5 text-right">Tracked time</th>
+              <th className="label-caps px-5 py-2.5 text-right">Billable</th>
+              <th className="label-caps px-5 py-2.5 text-right">Utilization</th>
             </tr>
           </thead>
           <tbody>
@@ -376,8 +376,8 @@ function TimeLogsTab() {
           <tr className="border-b border-border">
             <th className="label-caps px-5 py-2.5 text-left">Date</th>
             <th className="label-caps px-5 py-2.5 text-left">Description</th>
-            <th className="label-caps px-5 py-2.5 text-left">Projet</th>
-            <th className="label-caps px-5 py-2.5 text-right">Durée</th>
+            <th className="label-caps px-5 py-2.5 text-left">Project</th>
+            <th className="label-caps px-5 py-2.5 text-right">Duration</th>
             <th className="label-caps px-5 py-2.5 text-right">Billable</th>
           </tr>
         </thead>
@@ -408,15 +408,15 @@ function TimeOffTab() {
     <>
       <StatRow
         items={[
-          { label: "Jours de congé pris", value: "0" },
-          { label: "Jours planifiés", value: "0" },
-          { label: "Solde", value: "—" },
-          { label: "Membres suivis", value: "1" },
+          { label: "Time off days taken", value: "0" },
+          { label: "Planned days", value: "0" },
+          { label: "Balance", value: "—" },
+          { label: "Tracked members", value: "1" },
         ]}
       />
       <Card>
         <p className="py-10 text-center text-sm text-muted-foreground">
-          Aucun congé enregistré sur la période sélectionnée.
+          No time off recorded for the selected period.
         </p>
       </Card>
     </>
