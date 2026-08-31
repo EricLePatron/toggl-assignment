@@ -134,7 +134,7 @@ export const teamMembers: Member[] = [
 
 export const memberById = (id: string) => teamMembers.find((m) => m.id === id)!;
 export const currentUser = {
-  ...teamMembers[0],
+  ...teamMembers[0]!,
   roleLabel: "Workspace administrator",
 };
 
@@ -1075,7 +1075,7 @@ function pushEntries(opts: {
       start,
       end,
       duration: dur,
-      description: descriptions[Math.floor(rand() * descriptions.length)],
+      description: descriptions[Math.floor(rand() * descriptions.length)] ?? "Work",
       memberId,
       taskId: task ? task.id : null,
       projectId: seed ? seed.id : null,
@@ -1119,7 +1119,7 @@ for (const weekStart of weeks) {
     }
 
     // 2. target for the week
-    const ratio = ratioByMonth[member.id][mk] ?? 1;
+    const ratio = ratioByMonth[member.id]?.[mk] ?? 1;
     const target = q(jitter(member.capacity * ratio * dayFactor, 0.06));
 
     // 3. internal (non-billable) studio time
@@ -1175,7 +1175,7 @@ for (const weekStart of weeks) {
         );
         const sum = weights.reduce((s, v) => s + v, 0);
         flex.forEach((task, i) => {
-          const hours = q((remaining * weights[i]) / sum);
+          const hours = q((remaining * (weights[i] ?? 1)) / sum);
           pushEntries({
             memberId: member.id,
             weekStart,
@@ -1363,7 +1363,7 @@ export type MonthStat = {
 };
 
 const monthKeys = ["2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08"];
-const monthLabel = (key: string) => `${MONTH_ABBR[Number(key.slice(5)) - 1]} 2026`;
+const monthLabel = (key: string) => `${MONTH_ABBR[Number(key.slice(5)) - 1] ?? ""} 2026`;
 
 export const monthlyStats: MonthStat[] = monthKeys.map((key) => {
   const rows = timeEntries.filter((e) => e.date.startsWith(key));
@@ -1492,7 +1492,7 @@ export const weekDays = Array.from({ length: 7 }, (_, i) => {
     .filter((e) => e.memberId === currentUser.id && e.date === iso(date))
     .reduce((s, e) => s + e.duration, 0);
   return {
-    label: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][i],
+    label: (["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const)[i]!,
     num: date.getUTCDate(),
     date: iso(date),
     hours: hours ? formatHours(hours) : "–",
@@ -1527,7 +1527,7 @@ export const calendarEvents: CalendarEvent[] = timeEntries
       start: e.start,
       end: e.end,
       title: e.description,
-      subtitle: project?.name,
+      ...(project ? { subtitle: project.name } : {}),
       duration: formatHours(e.duration),
       color: project?.color ?? "pink",
       billable: e.billable,
@@ -1543,11 +1543,13 @@ const currentWeekBillable = currentWeekEntries
   .reduce((s, e) => s + e.duration, 0);
 const currentWeekRevenue = currentWeekEntries.reduce((s, e) => s + e.revenue, 0);
 
+const CURRENT_CAPACITY = currentUser.capacity ?? 35;
+
 export const weekSummary = {
   tracked: formatHours(currentWeekTracked),
   trackedHours: q(currentWeekTracked),
-  planned: formatHours(currentUser.capacity),
-  progress: Math.min(currentWeekTracked / currentUser.capacity, 1),
+  planned: formatHours(CURRENT_CAPACITY),
+  progress: Math.min(currentWeekTracked / CURRENT_CAPACITY, 1),
   billableHours: q(currentWeekBillable),
   billableShare: `${formatHours(currentWeekBillable)} (${Math.round(
     (currentWeekBillable / Math.max(currentWeekTracked, 0.01)) * 100,
@@ -1569,7 +1571,7 @@ export const workloadDays = Array.from({ length: 5 }, (_, i) => {
     .filter((e) => e.memberId === currentUser.id && e.date === iso(date))
     .reduce((s, e) => s + e.duration, 0);
   return {
-    label: ["Mon", "Tue", "Wed", "Thu", "Fri"][i],
+    label: (["Mon", "Tue", "Wed", "Thu", "Fri"] as const)[i]!,
     date: `${date.getUTCMonth() + 1}/${date.getUTCDate()}`,
     tracked: q(tracked),
   };
