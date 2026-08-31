@@ -35,6 +35,8 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent-pink: var(--accent-pink);
+  --color-nav-active-bg: var(--nav-active-bg);
+  --color-nav-active-text: var(--nav-active-text);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-warning: var(--warning);
@@ -94,6 +96,9 @@
     var(--accent) 0%,
     var(--accent-pink) 100%
   );
+
+  --nav-active-bg: oklch(0.32 0.08 305);
+  --nav-active-text: oklch(0.82 0.12 305);
 }
 
 @layer base {
@@ -145,7 +150,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  border-radius: 999px;
+  border-radius: 0.625rem;
   border: 1px solid var(--color-border);
   background: var(--color-surface-2);
   padding: 0.375rem 0.75rem;
@@ -159,6 +164,12 @@
     background: color-mix(in oklab, var(--color-surface-2) 70%, white 8%);
     border-color: color-mix(in oklab, var(--color-border) 60%, white 12%);
   }
+}
+
+@utility pill-dashed {
+  border-style: dashed;
+  border-color: color-mix(in oklab, var(--color-border) 85%, white 10%);
+  color: var(--color-muted-foreground);
 }
 
 @utility panel {
