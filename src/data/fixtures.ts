@@ -923,6 +923,7 @@ const ratioByMonth: Record<string, Record<string, number>> = {
     "2026-06": 0.9,
     "2026-07": 0.65,
     "2026-08": 0.95,
+    "2026-09": 0.8,
   },
   tn: {
     "2026-03": 1.26,
@@ -931,6 +932,7 @@ const ratioByMonth: Record<string, Record<string, number>> = {
     "2026-06": 1.33,
     "2026-07": 1.1,
     "2026-08": 1.48,
+    "2026-09": 1.22,
   },
   ao: {
     "2026-03": 1.16,
@@ -939,6 +941,7 @@ const ratioByMonth: Record<string, Record<string, number>> = {
     "2026-06": 1.15,
     "2026-07": 1.02,
     "2026-08": 1.2,
+    "2026-09": 1.06,
   },
 };
 
@@ -950,6 +953,7 @@ const internalBumpByMonth: Record<string, number> = {
   "2026-06": 1.35,
   "2026-07": 1.65,
   "2026-08": 1.75,
+  "2026-09": 1.6,
 };
 
 /** Non-billable, untagged "general / misc" time — small but real and growing. */
