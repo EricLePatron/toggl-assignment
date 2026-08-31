@@ -12,8 +12,16 @@ import {
   Settings,
   Users,
 } from "lucide-react";
-import { currentUser, projectById, projectColorClass, tasks } from "@/data/fixtures";
-import { EmptyState, PrimaryButton } from "@/components/app/primitives";
+import {
+  CURRENT_WEEK_START,
+  formatHours,
+  memberWeeks,
+  projectById,
+  projectColorClass,
+  teamMembers,
+  tasks,
+} from "@/data/fixtures";
+import { PrimaryButton } from "@/components/app/primitives";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/timeline")({
@@ -35,23 +43,50 @@ export const Route = createFileRoute("/timeline")({
   component: TimelineScreen,
 });
 
-const days = [
-  { label: "Sun", num: 30 },
-  { label: "Mon", num: 31, today: true },
-  { label: "Tue", num: 1 },
-  { label: "Wed", num: 2 },
-  { label: "Thu", num: 3 },
-  { label: "Fri", num: 4 },
-  { label: "Sat", num: 5 },
-];
+const WEEK_START = new Date(CURRENT_WEEK_START.getTime() - 24 * 3600 * 1000); // Sunday
+const dayDate = (i: number) => new Date(WEEK_START.getTime() + i * 24 * 3600 * 1000);
+const days = Array.from({ length: 7 }, (_, i) => {
+  const date = dayDate(i);
+  return {
+    label: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][i]!,
+    num: date.getUTCDate(),
+    today: date.getTime() === CURRENT_WEEK_START.getTime(),
+    iso: date.toISOString().slice(0, 10),
+  };
+});
 
-const allocations = [
-  { taskId: "t10", startDay: 1, span: 1, perDay: "3h /day" },
-  { taskId: "t11", startDay: 1, span: 1, perDay: "2h /day" },
-  { taskId: "t6", startDay: 2, span: 1, perDay: "1h /day" },
-  { taskId: "t1", startDay: 2, span: 2, perDay: "3h /day" },
-  { taskId: "t2", startDay: 4, span: 2, perDay: "2h /day" },
-];
+const weekKey = CURRENT_WEEK_START.toISOString().slice(0, 10);
+
+/** Open tasks overlapping the displayed week, laid out per member. */
+function allocationsFor(memberId: string) {
+  return tasks
+    .filter(
+      (t) =>
+        t.assigneeId === memberId &&
+        t.status !== "Done" &&
+        t.kind !== "ongoing" &&
+        t.endDate >= days[0]!.iso &&
+        t.startDate <= days[6]!.iso,
+    )
+    .map((t) => {
+      const startDay = Math.max(
+        0,
+        days.findIndex((d) => d.iso >= t.startDate),
+      );
+      const endDay = (() => {
+        const idx = days.findIndex((d) => d.iso >= t.endDate);
+        return idx === -1 ? 6 : idx;
+      })();
+      const span = Math.max(1, endDay - startDay + 1);
+      const remaining = Math.max(0.5, t.estimateHours - t.tracked);
+      return {
+        task: t,
+        startDay,
+        span,
+        perDay: `${formatHours(Math.max(0.5, remaining / span))} /day`,
+      };
+    });
+}
 
 function TimelineScreen() {
   return (
@@ -104,7 +139,7 @@ function TimelineScreen() {
       <div className="border-y border-border">
         <div className="grid grid-cols-[280px_repeat(7,1fr)] border-b border-border">
           <div className="px-7 py-3 text-sm font-semibold">
-            People <span className="text-muted-foreground">1</span>
+            People <span className="text-muted-foreground">{teamMembers.length}</span>
           </div>
           {days.map((d) => (
             <div
@@ -120,87 +155,88 @@ function TimelineScreen() {
           ))}
         </div>
 
-        {/* Unassigned row */}
-        <div className="grid grid-cols-[280px_repeat(7,1fr)] border-b border-border">
-          <div className="flex items-center gap-3 px-7 py-6 text-sm text-muted-foreground">
-            <span className="flex size-6 items-center justify-center rounded-full bg-surface-2 text-[10px]">
-              AR
-            </span>
-            Unassigned
-          </div>
-          {days.map((d) => (
-            <div key={d.num} className="border-l border-border" />
-          ))}
-        </div>
-
-        {/* Member row */}
-        <div className="grid grid-cols-[280px_repeat(7,1fr)]">
-          <div className="px-7 py-4">
-            <div className="flex items-center gap-2 pb-2">
-              <div className="h-1 w-24 overflow-hidden rounded-full bg-surface-2">
-                <div className="grad-accent h-full w-1/4" />
-              </div>
-              <span className="tnum text-xs text-muted-foreground">10h / 40h</span>
-            </div>
-            <div className="flex items-center gap-3 text-sm">
-              <span className="flex size-6 items-center justify-center rounded-full bg-surface-2 text-[10px]">
-                {currentUser.initials}
-              </span>
-              {currentUser.name}
-            </div>
-            <div className="pt-2 text-xs text-positive">30h available</div>
-          </div>
-
-          <div className="relative col-span-7 grid min-h-[400px] grid-cols-7">
-            {days.map((d) => (
-              <div key={d.num} className="border-l border-border" />
-            ))}
-
-
-            <div className="absolute inset-x-0 top-1 grid grid-cols-7 text-xs">
-              <div />
-              <div className="tnum px-2 text-muted-foreground">3h</div>
-              <div className="tnum px-2 text-warning">+5h 55m</div>
-              <div className="tnum px-2 text-destructive">+7h 55m</div>
-              <div />
-              <div />
-              <div className="tnum px-2 text-muted-foreground">7h</div>
-            </div>
-
-            <div className="absolute inset-x-0 top-7 space-y-1.5 px-1">
-              {allocations.map((a) => {
-                const task = tasks.find((t) => t.id === a.taskId)!;
-                const project = projectById(task.projectId)!;
-                return (
-                  <div
-                    key={a.taskId}
-                    className={cn(
-                      "relative h-12 overflow-hidden rounded-md px-2 py-1 text-[11px] leading-tight text-black/85",
-                      projectColorClass[project.color],
-                    )}
-                    style={{
-                      marginLeft: `${(a.startDay / 7) * 100}%`,
-                      width: `${(a.span / 7) * 100}%`,
-                    }}
-                  >
-                    <div className="truncate font-semibold">{task.name}</div>
-                    <div className="truncate opacity-80">
-                      {project.name} • {a.perDay}
-                    </div>
+        {teamMembers.map((member) => {
+          const week = memberWeeks.find(
+            (w) => w.memberId === member.id && w.weekStart === weekKey,
+          );
+          const tracked = week?.tracked ?? 0;
+          const capacity = member.capacity;
+          const over = tracked > capacity;
+          const allocations = allocationsFor(member.id);
+          return (
+            <div
+              key={member.id}
+              className="grid grid-cols-[280px_repeat(7,1fr)] border-b border-border last:border-0"
+            >
+              <div className="px-7 py-4">
+                <div className="flex items-center gap-2 pb-2">
+                  <div className="h-1 w-24 overflow-hidden rounded-full bg-surface-2">
+                    <div
+                      className={cn("h-full", over ? "bg-destructive" : "grad-accent")}
+                      style={{ width: `${Math.min((tracked / capacity) * 100, 100)}%` }}
+                    />
                   </div>
-                );
-              })}
+                  <span className="tnum text-xs text-muted-foreground">
+                    {formatHours(tracked)} / {capacity}h
+                  </span>
+                </div>
+                <div className="flex items-center gap-3 text-sm">
+                  <span className="flex size-6 items-center justify-center rounded-full bg-surface-2 text-[10px]">
+                    {member.initials}
+                  </span>
+                  {member.name}
+                </div>
+                <div
+                  className={cn(
+                    "pt-2 text-xs",
+                    over ? "text-destructive" : "text-positive",
+                  )}
+                >
+                  {over
+                    ? `${formatHours(tracked - capacity)} over capacity`
+                    : `${formatHours(capacity - tracked)} available`}
+                </div>
+              </div>
+
+              <div className="relative col-span-7 grid min-h-[160px] grid-cols-7">
+                {days.map((d) => (
+                  <div key={d.num} className="border-l border-border" />
+                ))}
+
+                <div className="absolute inset-x-0 top-2 space-y-1.5 px-1">
+                  {allocations.map((a) => {
+                    const project = projectById(a.task.projectId)!;
+                    return (
+                      <div
+                        key={a.task.id}
+                        className={cn(
+                          "relative h-12 overflow-hidden rounded-md px-2 py-1 text-[11px] leading-tight text-black/85",
+                          projectColorClass[project.color],
+                        )}
+                        style={{
+                          marginLeft: `${(a.startDay / 7) * 100}%`,
+                          width: `${(a.span / 7) * 100}%`,
+                        }}
+                      >
+                        <div className="truncate font-semibold">{a.task.name}</div>
+                        <div className="truncate opacity-80">
+                          {project.name} • {a.perDay}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {!allocations.length && (
+                    <div className="px-3 py-4 text-xs text-subtle">
+                      No planned work this week
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          );
+        })}
       </div>
 
-      <EmptyState
-        title="Plan your team's capacity"
-        description="See at a glance who is overbooked or under capacity. This space fills up with a lane for each person you invite."
-        action={<PrimaryButton>Invite members</PrimaryButton>}
-        icon={<Users className="size-10" />}
-      />
     </div>
   );
 }
