@@ -221,9 +221,11 @@ function TimerScreen() {
                         {e.subtitle && (
                           <div className="truncate opacity-75">{e.subtitle}</div>
                         )}
-                        <div className="tnum absolute bottom-1 left-2 opacity-80">
-                          ⏱ {e.duration}
-                        </div>
+                        {e.end - e.start >= 0.5 && (
+                          <div className="tnum absolute bottom-1 left-2 opacity-80">
+                            ⏱ {e.duration}
+                          </div>
+                        )}
                         {e.billable && (
                           <div className="absolute bottom-1 right-2 opacity-80">$</div>
                         )}

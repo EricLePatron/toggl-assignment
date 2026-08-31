@@ -146,7 +146,7 @@ function SummaryTab() {
       <Card>
         <h2 className="pb-6 text-base font-semibold">Temps facturable vs non facturable</h2>
         <BarChart />
-        <div className="flex items-center justify-center gap-6 pt-5 text-xs text-muted-foreground">
+        <div className="flex items-center justify-center gap-6 pt-16 text-xs text-muted-foreground">
           <span className="flex items-center gap-2">
             <span className="size-2.5 rounded-[3px] bg-accent" /> Billable
           </span>
