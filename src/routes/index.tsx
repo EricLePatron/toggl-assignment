@@ -7,7 +7,7 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  DollarSign,
+  Euro,
   Folder,
   Hash,
   LayoutGrid,
@@ -106,7 +106,7 @@ function TimerScreen() {
             Tags
           </button>
           <button className="text-muted-foreground transition-colors hover:text-foreground">
-            <DollarSign className="size-4" />
+            <Euro className="size-4" />
           </button>
           <span className="tnum px-2 text-xl font-semibold">
             {formatElapsed(elapsed)}
@@ -272,7 +272,7 @@ function TimerScreen() {
                           </div>
                         )}
                         {e.billable && (
-                          <div className="absolute bottom-1 right-2 opacity-80">$</div>
+                          <div className="absolute bottom-1 right-2 opacity-80">€</div>
                         )}
                       </div>
                     );

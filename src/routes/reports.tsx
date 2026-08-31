@@ -23,6 +23,8 @@ import {
   workloadDays,
   workloadTarget,
   projectColorClass,
+  money,
+  teamMembers,
 } from "@/data/fixtures";
 import { Card, Stat, Tabs } from "@/components/app/primitives";
 import { cn } from "@/lib/utils";
@@ -101,7 +103,7 @@ function ReportsScreen() {
         <div className="ml-auto flex items-center gap-2">
           <button className="pill">
             <Wallet className="size-3.5 text-muted-foreground" />
-            Displayed in USD
+            Displayed in EUR
             <ChevronDown className="size-3.5 text-muted-foreground" />
           </button>
           <button className="text-muted-foreground transition-colors hover:text-foreground">
@@ -186,7 +188,7 @@ function SummaryTab() {
                   {p.entries}
                 </td>
                 <td className="tnum px-5 py-3 text-right">
-                  {p.rate ? `${(p.rate * p.billable).toFixed(2)} USD` : "—"}
+                  {p.billableProject ? money(p.revenue) : "—"}
                 </td>
               </tr>
             ))}
@@ -198,23 +200,25 @@ function SummaryTab() {
 }
 
 function BarChart({ showTarget = false }: { showTarget?: boolean }) {
-  const max = 5;
+  const peak = Math.max(workloadTarget, ...workloadDays.map((d) => d.tracked), 1);
+  const max = Math.ceil(peak / 2) * 2;
+  const ticks = Array.from({ length: 6 }, (_, i) => (max / 5) * (5 - i));
   return (
     <div className="relative h-64">
-      {[5, 4, 3, 2, 1, 0].map((v) => (
+      {ticks.map((v) => (
         <div
           key={v}
           className="absolute inset-x-0 flex items-center gap-3"
           style={{ bottom: `${(v / max) * 100}%` }}
         >
-          <span className="tnum w-6 shrink-0 text-xs text-subtle">{v}h</span>
+          <span className="tnum w-6 shrink-0 text-xs text-subtle">{Math.round(v)}h</span>
           <span className="h-px flex-1 border-t border-dashed border-border" />
         </div>
       ))}
       {showTarget && (
         <div
           className="absolute inset-x-9 border-t-2 border-warning"
-          style={{ bottom: `${(workloadTarget / 10) * 100}%` }}
+          style={{ bottom: `${(workloadTarget / max) * 100}%` }}
         />
       )}
       <div className="absolute inset-y-0 left-9 right-0 flex items-end gap-6">
@@ -224,7 +228,7 @@ function BarChart({ showTarget = false }: { showTarget?: boolean }) {
             <div
               className={cn(
                 "w-full rounded-t-sm",
-                d.tracked > 3 ? "bg-accent" : "bg-accent-pink/50",
+                d.tracked >= workloadTarget * 0.6 ? "bg-accent" : "bg-accent-pink/50",
               )}
               style={{ height: `${(d.tracked / max) * 210}px` }}
             />
@@ -249,7 +253,7 @@ function WorkloadTab() {
       <Card>
         <div className="flex items-center gap-2 pb-6">
           <h2 className="text-base font-semibold">Am I overworked?</h2>
-          <span className="pill !py-1 text-xs">Target: 8h / day</span>
+          <span className="pill !py-1 text-xs">Target: {workloadTarget}h / day</span>
         </div>
         <BarChart showTarget />
         <div className="flex items-center justify-center gap-6 pt-16 text-xs text-muted-foreground">
@@ -288,17 +292,18 @@ function ProfitabilityTab() {
         <div className="flex gap-3">
           <TriangleAlert className="size-5 shrink-0 text-warning" />
           <div className="text-sm">
-            <div className="font-semibold">Missing data</div>
+            <div className="font-semibold">Rate coverage</div>
             <ul className="list-disc space-y-1 pl-5 pt-2 text-muted-foreground">
+              <li>{profitability.uncoveredLabel}</li>
               <li>
-                Members with no cost rate : {profitability.missingCostRates.join(", ")}
+                Affected projects : {profitability.uncoveredProjects.join(", ") || "—"}
               </li>
               <li>
-                Billable projects with no active rate :{" "}
-                {profitability.missingProjectRates.join(", ")}
+                Non-billable projects : {profitability.nonBillableProjects.join(", ")}
               </li>
             </ul>
           </div>
+
         </div>
       </Card>
       <Card className="p-0">
@@ -316,11 +321,11 @@ function ProfitabilityTab() {
               <tr key={p.id} className="border-b border-border/60 last:border-0">
                 <td className="px-5 py-3">{p.name}</td>
                 <td className="tnum px-5 py-3 text-right text-muted-foreground">
-                  {p.rate ? `${p.rate} USD` : "—"}
+                  {p.rate ? `${p.rate} €/h` : "—"}
                 </td>
                 <td className="tnum px-5 py-3 text-right">{formatH(p.billable)}</td>
                 <td className="tnum px-5 py-3 text-right">
-                  {p.rate ? `${(p.rate * p.billable).toFixed(2)} USD` : "—"}
+                  {p.billableProject ? money(p.revenue) : "—"}
                 </td>
               </tr>
             ))}
@@ -390,7 +395,7 @@ function TimeLogsTab() {
               <td className="tnum px-5 py-3 text-right">{l.duration}</td>
               <td className="px-5 py-3 text-right">
                 {l.billable ? (
-                  <span className="text-positive">$</span>
+                  <span className="text-positive">€</span>
                 ) : (
                   <span className="text-subtle">—</span>
                 )}
@@ -411,7 +416,7 @@ function TimeOffTab() {
           { label: "Time off days taken", value: "0" },
           { label: "Planned days", value: "0" },
           { label: "Balance", value: "—" },
-          { label: "Tracked members", value: "1" },
+          { label: "Tracked members", value: String(teamMembers.length) },
         ]}
       />
       <Card>
