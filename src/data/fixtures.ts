@@ -302,8 +302,8 @@ const taskSeeds: TaskSeed[] = [
     assignee: "ao",
     estimate: 16,
     factor: 1.68,
-    start: d(2026, 5, 11),
-    end: d(2026, 5, 22),
+    start: d(2026, 6, 8),
+    end: d(2026, 6, 19),
     priority: "High",
     tag: INTEGRATION_TAG,
     status: "Done",
@@ -750,7 +750,7 @@ const taskSeeds: TaskSeed[] = [
     assignee: "tn",
     estimate: 0,
     factor: 1,
-    start: d(2026, 4, 6),
+    start: d(2026, 6, 1),
     end: d(2026, 8, 31),
     priority: "Medium",
     tag: "Design QA",
@@ -782,7 +782,7 @@ const taskSeeds: TaskSeed[] = [
     assignee: "ao",
     estimate: 0,
     factor: 1,
-    start: d(2026, 4, 6),
+    start: d(2026, 6, 1),
     end: d(2026, 8, 31),
     priority: "Medium",
     tag: "Engineering",
@@ -814,7 +814,7 @@ const taskSeeds: TaskSeed[] = [
     assignee: "ce",
     estimate: 0,
     factor: 1,
-    start: d(2026, 4, 6),
+    start: d(2026, 6, 1),
     end: d(2026, 8, 31),
     priority: "Medium",
     tag: "Client",
@@ -917,29 +917,39 @@ function weekdaysOf(weekStart: Date): number[] {
 /** Weekly capacity ratio per member per month — the workload story. */
 const ratioByMonth: Record<string, Record<string, number>> = {
   ce: {
-    "2026-03": 1.0,
-    "2026-04": 0.99,
-    "2026-05": 1.02,
-    "2026-06": 0.83,
-    "2026-07": 0.78,
-    "2026-08": 0.8,
+    "2026-03": 1.13,
+    "2026-04": 0.88,
+    "2026-05": 0.97,
+    "2026-06": 0.9,
+    "2026-07": 0.65,
+    "2026-08": 0.95,
   },
   tn: {
-    "2026-03": 1.08,
+    "2026-03": 1.26,
     "2026-04": 1.13,
     "2026-05": 1.2,
-    "2026-06": 1.16,
-    "2026-07": 1.22,
-    "2026-08": 1.18,
+    "2026-06": 1.33,
+    "2026-07": 1.1,
+    "2026-08": 1.48,
   },
   ao: {
-    "2026-03": 1.0,
+    "2026-03": 1.16,
     "2026-04": 1.0,
     "2026-05": 1.04,
-    "2026-06": 1.0,
+    "2026-06": 1.15,
     "2026-07": 1.02,
-    "2026-08": 1.03,
+    "2026-08": 1.2,
   },
+};
+
+/** Internal (non-billable) load multiplier per month — drives the margin trend. */
+const internalBumpByMonth: Record<string, number> = {
+  "2026-03": 0.8,
+  "2026-04": 0.85,
+  "2026-05": 1.8,
+  "2026-06": 1.1,
+  "2026-07": 1.45,
+  "2026-08": 1.5,
 };
 
 /** Non-billable, untagged "general / misc" time — small but real and growing. */
@@ -1124,9 +1134,9 @@ for (const weekStart of weeks) {
 
     // 3. internal (non-billable) studio time
     const internalShare = member.id === "ce" ? 0.2 : 0.06;
-    const mayBump = mk === "2026-05" ? 1.6 : 1;
+    const internalBump = internalBumpByMonth[mk] ?? 1;
     const internalHours = q(
-      Math.min(target * 0.45, jitter(target * internalShare * mayBump, 0.25)),
+      Math.min(target * 0.5, jitter(target * internalShare * internalBump, 0.25)),
     );
     const internalTask = taskSeeds.find(
       (t) => t.projectId === "studio-internal" && t.assignee === member.id,
