@@ -16,7 +16,7 @@ import { currentUser, projectById, projectColorClass, tasks } from "@/data/fixtu
 import { EmptyState, PrimaryButton } from "@/components/app/primitives";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/chronologie")({
+export const Route = createFileRoute("/timeline")({
   head: () => ({
     meta: [
       { title: "Chronologie — Focus Replica" },

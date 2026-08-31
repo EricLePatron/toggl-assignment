@@ -3,7 +3,7 @@ import { ChevronDown, Filter, Plus, Search, Settings } from "lucide-react";
 import { members } from "@/data/fixtures";
 import { Card, PrimaryButton } from "@/components/app/primitives";
 
-export const Route = createFileRoute("/membres")({
+export const Route = createFileRoute("/members")({
   head: () => ({
     meta: [
       { title: "Membres — Focus Replica" },

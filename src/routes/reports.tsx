@@ -27,7 +27,7 @@ import {
 import { Card, Stat, Tabs } from "@/components/app/primitives";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/rapports")({
+export const Route = createFileRoute("/reports")({
   head: () => ({
     meta: [
       { title: "Rapports — Focus Replica" },

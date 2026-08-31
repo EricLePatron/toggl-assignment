@@ -13,7 +13,7 @@ import {
 import { Card, EmptyState, Stat, StatusBadge, Tabs } from "@/components/app/primitives";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/projets/$projectId")({
+export const Route = createFileRoute("/projects/$projectId")({
   head: () => ({
     meta: [
       { title: "Détail du projet — Focus Replica" },

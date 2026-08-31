@@ -13,7 +13,7 @@ import { projects, projectTextClass } from "@/data/fixtures";
 import { PrimaryButton } from "@/components/app/primitives";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/projets/")({
+export const Route = createFileRoute("/projects/")({
   head: () => ({
     meta: [
       { title: "Projets — Focus Replica" },

@@ -32,22 +32,22 @@ type NavSection = { title: string; items: NavItem[] };
 
 /** Add a screen: drop a route file and add one entry here. */
 export const navSections: NavSection[] = [
-  { title: "Suivre", items: [{ label: "Minuteur", to: "/", icon: Clock }] },
-  { title: "Analyser", items: [{ label: "Rapports", to: "/rapports", icon: FileBarChart }] },
+  { title: "Track", items: [{ label: "Timer", to: "/", icon: Clock }] },
+  { title: "Analyze", items: [{ label: "Reports", to: "/reports", icon: FileBarChart }] },
   {
     title: "Plan",
     items: [
-      { label: "Projets", to: "/projets", icon: Folder },
-      { label: "Tâches", to: "/taches", icon: ListChecks },
-      { label: "Chronologie", to: "/chronologie", icon: GanttChartSquare, starred: true },
+      { label: "Projects", to: "/projects", icon: Folder },
+      { label: "Tasks", to: "/tasks", icon: ListChecks },
+      { label: "Timeline", to: "/timeline", icon: GanttChartSquare, starred: true },
     ],
   },
   {
-    title: "Gérer",
+    title: "Manage",
     items: [
-      { label: "Membres", to: "/membres", icon: BadgeCheck },
-      { label: "Approbations", to: "/approbations", icon: BadgeCheck, starred: true },
-      { label: "Congé", to: "/conge", icon: Palmtree, starred: true },
+      { label: "Members", to: "/members", icon: BadgeCheck },
+      { label: "Approvals", to: "/approvals", icon: BadgeCheck, starred: true },
+      { label: "Time off", to: "/time-off", icon: Palmtree, starred: true },
     ],
   },
 ];
@@ -82,7 +82,7 @@ export function Sidebar({ onOpenAsk }: { onOpenAsk: () => void }) {
           onClick={onOpenAsk}
           className="flex w-full items-center gap-2 rounded-xl border border-sidebar-border bg-surface-2 px-3 py-2 text-sm text-muted-foreground transition-colors hover:border-accent/50"
         >
-          <span className="flex-1 text-left">Demander à Toggl</span>
+          <span className="flex-1 text-left">Ask Toggl</span>
           <kbd className="rounded border border-border px-1 text-[10px] text-subtle">⏎</kbd>
           <kbd className="rounded border border-border px-1 text-[10px] text-subtle">⌘K</kbd>
         </button>
@@ -148,19 +148,19 @@ export function Sidebar({ onOpenAsk }: { onOpenAsk: () => void }) {
 
         <button className="mb-3 flex w-full items-center gap-2 rounded-xl border border-border bg-surface-2 px-3 py-2 text-left text-sm transition-colors hover:border-accent/50">
           <ArrowUpCircle className="size-4 text-accent-pink" />
-          <span className="flex-1 font-medium">Mettre à niveau</span>
+          <span className="flex-1 font-medium">Upgrade</span>
           <span className="grad-accent rounded-full px-2 py-0.5 text-[10px] font-semibold text-primary-foreground">
-            {workspace.trialDaysLeft} JOURS
+            {workspace.trialDaysLeft} DAYS
           </span>
         </button>
 
         <button className="flex w-full items-center gap-2 px-1 py-1 text-xs text-muted-foreground transition-colors hover:text-foreground">
           <Download className="size-3.5" />
-          Télécharger des applications
+          Download apps
         </button>
         <button className="flex w-full items-center gap-2 px-1 py-1 text-xs text-muted-foreground transition-colors hover:text-foreground">
           <Settings className="size-3.5" />
-          Paramètres administratifs
+          Admin settings
         </button>
       </div>
     </aside>

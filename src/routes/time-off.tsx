@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Palmtree } from "lucide-react";
 import { Card, EmptyState, PrimaryButton } from "@/components/app/primitives";
 
-export const Route = createFileRoute("/conge")({
+export const Route = createFileRoute("/time-off")({
   head: () => ({
     meta: [
       { title: "Congé — Focus Replica" },

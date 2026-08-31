@@ -16,7 +16,7 @@ import { projectById, projectColorClass, tasks } from "@/data/fixtures";
 import { PrimaryButton, StatusBadge } from "@/components/app/primitives";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/taches")({
+export const Route = createFileRoute("/tasks")({
   head: () => ({
     meta: [
       { title: "Tâches — Focus Replica" },

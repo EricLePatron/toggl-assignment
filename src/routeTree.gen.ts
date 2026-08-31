@@ -10,141 +10,141 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ApprobationsRouteImport } from './routes/approbations'
-import { Route as ChronologieRouteImport } from './routes/chronologie'
-import { Route as CongeRouteImport } from './routes/conge'
-import { Route as MembresRouteImport } from './routes/membres'
-import { Route as RapportsRouteImport } from './routes/rapports'
-import { Route as TachesRouteImport } from './routes/taches'
-import { Route as ProjetsIndexRouteImport } from './routes/projets.index'
-import { Route as ProjetsProjectIdRouteImport } from './routes/projets.$projectId'
+import { Route as ApprovalsRouteImport } from './routes/approvals'
+import { Route as MembersRouteImport } from './routes/members'
+import { Route as ReportsRouteImport } from './routes/reports'
+import { Route as TasksRouteImport } from './routes/tasks'
+import { Route as TimeOffRouteImport } from './routes/time-off'
+import { Route as TimelineRouteImport } from './routes/timeline'
+import { Route as ProjectsIndexRouteImport } from './routes/projects.index'
+import { Route as ProjectsProjectIdRouteImport } from './routes/projects.$projectId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApprobationsRoute = ApprobationsRouteImport.update({
-  id: '/approbations',
-  path: '/approbations',
+const ApprovalsRoute = ApprovalsRouteImport.update({
+  id: '/approvals',
+  path: '/approvals',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ChronologieRoute = ChronologieRouteImport.update({
-  id: '/chronologie',
-  path: '/chronologie',
+const MembersRoute = MembersRouteImport.update({
+  id: '/members',
+  path: '/members',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CongeRoute = CongeRouteImport.update({
-  id: '/conge',
-  path: '/conge',
+const ReportsRoute = ReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
   getParentRoute: () => rootRouteImport,
 } as any)
-const MembresRoute = MembresRouteImport.update({
-  id: '/membres',
-  path: '/membres',
+const TasksRoute = TasksRouteImport.update({
+  id: '/tasks',
+  path: '/tasks',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RapportsRoute = RapportsRouteImport.update({
-  id: '/rapports',
-  path: '/rapports',
+const TimeOffRoute = TimeOffRouteImport.update({
+  id: '/time-off',
+  path: '/time-off',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TachesRoute = TachesRouteImport.update({
-  id: '/taches',
-  path: '/taches',
+const TimelineRoute = TimelineRouteImport.update({
+  id: '/timeline',
+  path: '/timeline',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProjetsIndexRoute = ProjetsIndexRouteImport.update({
-  id: '/projets/',
-  path: '/projets/',
+const ProjectsIndexRoute = ProjectsIndexRouteImport.update({
+  id: '/projects/',
+  path: '/projects/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProjetsProjectIdRoute = ProjetsProjectIdRouteImport.update({
-  id: '/projets/$projectId',
-  path: '/projets/$projectId',
+const ProjectsProjectIdRoute = ProjectsProjectIdRouteImport.update({
+  id: '/projects/$projectId',
+  path: '/projects/$projectId',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/approbations': typeof ApprobationsRoute
-  '/chronologie': typeof ChronologieRoute
-  '/conge': typeof CongeRoute
-  '/membres': typeof MembresRoute
-  '/rapports': typeof RapportsRoute
-  '/taches': typeof TachesRoute
-  '/projets/$projectId': typeof ProjetsProjectIdRoute
-  '/projets/': typeof ProjetsIndexRoute
+  '/approvals': typeof ApprovalsRoute
+  '/members': typeof MembersRoute
+  '/reports': typeof ReportsRoute
+  '/tasks': typeof TasksRoute
+  '/time-off': typeof TimeOffRoute
+  '/timeline': typeof TimelineRoute
+  '/projects/$projectId': typeof ProjectsProjectIdRoute
+  '/projects/': typeof ProjectsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/approbations': typeof ApprobationsRoute
-  '/chronologie': typeof ChronologieRoute
-  '/conge': typeof CongeRoute
-  '/membres': typeof MembresRoute
-  '/rapports': typeof RapportsRoute
-  '/taches': typeof TachesRoute
-  '/projets/$projectId': typeof ProjetsProjectIdRoute
-  '/projets': typeof ProjetsIndexRoute
+  '/approvals': typeof ApprovalsRoute
+  '/members': typeof MembersRoute
+  '/reports': typeof ReportsRoute
+  '/tasks': typeof TasksRoute
+  '/time-off': typeof TimeOffRoute
+  '/timeline': typeof TimelineRoute
+  '/projects/$projectId': typeof ProjectsProjectIdRoute
+  '/projects': typeof ProjectsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/approbations': typeof ApprobationsRoute
-  '/chronologie': typeof ChronologieRoute
-  '/conge': typeof CongeRoute
-  '/membres': typeof MembresRoute
-  '/rapports': typeof RapportsRoute
-  '/taches': typeof TachesRoute
-  '/projets/$projectId': typeof ProjetsProjectIdRoute
-  '/projets/': typeof ProjetsIndexRoute
+  '/approvals': typeof ApprovalsRoute
+  '/members': typeof MembersRoute
+  '/reports': typeof ReportsRoute
+  '/tasks': typeof TasksRoute
+  '/time-off': typeof TimeOffRoute
+  '/timeline': typeof TimelineRoute
+  '/projects/$projectId': typeof ProjectsProjectIdRoute
+  '/projects/': typeof ProjectsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/approbations'
-    | '/chronologie'
-    | '/conge'
-    | '/membres'
-    | '/rapports'
-    | '/taches'
-    | '/projets/$projectId'
-    | '/projets/'
+    | '/approvals'
+    | '/members'
+    | '/reports'
+    | '/tasks'
+    | '/time-off'
+    | '/timeline'
+    | '/projects/$projectId'
+    | '/projects/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/approbations'
-    | '/chronologie'
-    | '/conge'
-    | '/membres'
-    | '/rapports'
-    | '/taches'
-    | '/projets/$projectId'
-    | '/projets'
+    | '/approvals'
+    | '/members'
+    | '/reports'
+    | '/tasks'
+    | '/time-off'
+    | '/timeline'
+    | '/projects/$projectId'
+    | '/projects'
   id:
     | '__root__'
     | '/'
-    | '/approbations'
-    | '/chronologie'
-    | '/conge'
-    | '/membres'
-    | '/rapports'
-    | '/taches'
-    | '/projets/$projectId'
-    | '/projets/'
+    | '/approvals'
+    | '/members'
+    | '/reports'
+    | '/tasks'
+    | '/time-off'
+    | '/timeline'
+    | '/projects/$projectId'
+    | '/projects/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  ApprobationsRoute: typeof ApprobationsRoute
-  ChronologieRoute: typeof ChronologieRoute
-  CongeRoute: typeof CongeRoute
-  MembresRoute: typeof MembresRoute
-  RapportsRoute: typeof RapportsRoute
-  TachesRoute: typeof TachesRoute
-  ProjetsProjectIdRoute: typeof ProjetsProjectIdRoute
-  ProjetsIndexRoute: typeof ProjetsIndexRoute
+  ApprovalsRoute: typeof ApprovalsRoute
+  MembersRoute: typeof MembersRoute
+  ReportsRoute: typeof ReportsRoute
+  TasksRoute: typeof TasksRoute
+  TimeOffRoute: typeof TimeOffRoute
+  TimelineRoute: typeof TimelineRoute
+  ProjectsProjectIdRoute: typeof ProjectsProjectIdRoute
+  ProjectsIndexRoute: typeof ProjectsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -156,60 +156,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/approbations': {
-      id: '/approbations'
-      path: '/approbations'
-      fullPath: '/approbations'
-      preLoaderRoute: typeof ApprobationsRouteImport
+    '/approvals': {
+      id: '/approvals'
+      path: '/approvals'
+      fullPath: '/approvals'
+      preLoaderRoute: typeof ApprovalsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/chronologie': {
-      id: '/chronologie'
-      path: '/chronologie'
-      fullPath: '/chronologie'
-      preLoaderRoute: typeof ChronologieRouteImport
+    '/members': {
+      id: '/members'
+      path: '/members'
+      fullPath: '/members'
+      preLoaderRoute: typeof MembersRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/conge': {
-      id: '/conge'
-      path: '/conge'
-      fullPath: '/conge'
-      preLoaderRoute: typeof CongeRouteImport
+    '/reports': {
+      id: '/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof ReportsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/membres': {
-      id: '/membres'
-      path: '/membres'
-      fullPath: '/membres'
-      preLoaderRoute: typeof MembresRouteImport
+    '/tasks': {
+      id: '/tasks'
+      path: '/tasks'
+      fullPath: '/tasks'
+      preLoaderRoute: typeof TasksRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/rapports': {
-      id: '/rapports'
-      path: '/rapports'
-      fullPath: '/rapports'
-      preLoaderRoute: typeof RapportsRouteImport
+    '/time-off': {
+      id: '/time-off'
+      path: '/time-off'
+      fullPath: '/time-off'
+      preLoaderRoute: typeof TimeOffRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/taches': {
-      id: '/taches'
-      path: '/taches'
-      fullPath: '/taches'
-      preLoaderRoute: typeof TachesRouteImport
+    '/timeline': {
+      id: '/timeline'
+      path: '/timeline'
+      fullPath: '/timeline'
+      preLoaderRoute: typeof TimelineRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/projets/': {
-      id: '/projets/'
-      path: '/projets'
-      fullPath: '/projets/'
-      preLoaderRoute: typeof ProjetsIndexRouteImport
+    '/projects/': {
+      id: '/projects/'
+      path: '/projects'
+      fullPath: '/projects/'
+      preLoaderRoute: typeof ProjectsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/projets/$projectId': {
-      id: '/projets/$projectId'
-      path: '/projets/$projectId'
-      fullPath: '/projets/$projectId'
-      preLoaderRoute: typeof ProjetsProjectIdRouteImport
+    '/projects/$projectId': {
+      id: '/projects/$projectId'
+      path: '/projects/$projectId'
+      fullPath: '/projects/$projectId'
+      preLoaderRoute: typeof ProjectsProjectIdRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -217,14 +217,14 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  ApprobationsRoute: ApprobationsRoute,
-  ChronologieRoute: ChronologieRoute,
-  CongeRoute: CongeRoute,
-  MembresRoute: MembresRoute,
-  RapportsRoute: RapportsRoute,
-  TachesRoute: TachesRoute,
-  ProjetsProjectIdRoute: ProjetsProjectIdRoute,
-  ProjetsIndexRoute: ProjetsIndexRoute,
+  ApprovalsRoute: ApprovalsRoute,
+  MembersRoute: MembersRoute,
+  ReportsRoute: ReportsRoute,
+  TasksRoute: TasksRoute,
+  TimeOffRoute: TimeOffRoute,
+  TimelineRoute: TimelineRoute,
+  ProjectsProjectIdRoute: ProjectsProjectIdRoute,
+  ProjectsIndexRoute: ProjectsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

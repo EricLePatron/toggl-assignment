@@ -3,7 +3,7 @@ import { CalendarDays, CheckCircle2, ChevronDown, Filter } from "lucide-react";
 import { Card, EmptyState, PrimaryButton } from "@/components/app/primitives";
 import { weekSummary } from "@/data/fixtures";
 
-export const Route = createFileRoute("/approbations")({
+export const Route = createFileRoute("/approvals")({
   head: () => ({
     meta: [
       { title: "Approbations — Focus Replica" },
