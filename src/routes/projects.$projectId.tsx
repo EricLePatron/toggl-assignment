@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChevronLeft, Folder, Plus, Sparkle } from "lucide-react";
 import {
-  currentUser,
+  teamMembers,
   projectById,
   projectTextClass,
   tasks,
@@ -56,6 +56,9 @@ function ProjectDetail() {
   }
 
   const projectTasks = tasks.filter((t) => t.projectId === project.id);
+  const projectMembers = teamMembers.filter((m) =>
+    projectTasks.some((t) => t.assigneeId === m.id),
+  );
 
   return (
     <div className="pb-12">
