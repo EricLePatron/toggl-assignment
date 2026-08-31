@@ -153,7 +153,7 @@ function TimelineScreen() {
 
           <div className="relative col-span-7 grid grid-cols-7">
             {days.map((d) => (
-              <div key={d.num} className="min-h-[220px] border-l border-border" />
+              <div key={d.num} className="min-h-[340px] border-l border-border" />
             ))}
 
             <div className="absolute inset-x-0 top-1 grid grid-cols-7 text-xs">
