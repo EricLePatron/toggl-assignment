@@ -23,6 +23,8 @@ import {
   workloadDays,
   workloadTarget,
   projectColorClass,
+  money,
+  teamMembers,
 } from "@/data/fixtures";
 import { Card, Stat, Tabs } from "@/components/app/primitives";
 import { cn } from "@/lib/utils";

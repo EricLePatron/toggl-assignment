@@ -9,6 +9,7 @@ import {
   tasksByStatus,
   workspace,
   type TaskStatus,
+  money,
 } from "@/data/fixtures";
 import { Card, EmptyState, Stat, StatusBadge, Tabs } from "@/components/app/primitives";
 import { cn } from "@/lib/utils";
