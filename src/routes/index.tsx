@@ -272,7 +272,7 @@ function TimerScreen() {
                           </div>
                         )}
                         {e.billable && (
-                          <div className="absolute bottom-1 right-2 opacity-80">$</div>
+                          <div className="absolute bottom-1 right-2 opacity-80">€</div>
                         )}
                       </div>
                     );

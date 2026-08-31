@@ -101,7 +101,7 @@ function ReportsScreen() {
         <div className="ml-auto flex items-center gap-2">
           <button className="pill">
             <Wallet className="size-3.5 text-muted-foreground" />
-            Displayed in USD
+            Displayed in EUR
             <ChevronDown className="size-3.5 text-muted-foreground" />
           </button>
           <button className="text-muted-foreground transition-colors hover:text-foreground">
@@ -186,7 +186,7 @@ function SummaryTab() {
                   {p.entries}
                 </td>
                 <td className="tnum px-5 py-3 text-right">
-                  {p.rate ? `${(p.rate * p.billable).toFixed(2)} USD` : "—"}
+                  {p.billableProject ? money(p.revenue) : "—"}
                 </td>
               </tr>
             ))}
@@ -317,11 +317,11 @@ function ProfitabilityTab() {
               <tr key={p.id} className="border-b border-border/60 last:border-0">
                 <td className="px-5 py-3">{p.name}</td>
                 <td className="tnum px-5 py-3 text-right text-muted-foreground">
-                  {p.rate ? `${p.rate} USD` : "—"}
+                  {p.rate ? `${p.rate} €/h` : "—"}
                 </td>
                 <td className="tnum px-5 py-3 text-right">{formatH(p.billable)}</td>
                 <td className="tnum px-5 py-3 text-right">
-                  {p.rate ? `${(p.rate * p.billable).toFixed(2)} USD` : "—"}
+                  {p.billableProject ? money(p.revenue) : "—"}
                 </td>
               </tr>
             ))}
@@ -391,7 +391,7 @@ function TimeLogsTab() {
               <td className="tnum px-5 py-3 text-right">{l.duration}</td>
               <td className="px-5 py-3 text-right">
                 {l.billable ? (
-                  <span className="text-positive">$</span>
+                  <span className="text-positive">€</span>
                 ) : (
                   <span className="text-subtle">—</span>
                 )}
@@ -412,7 +412,7 @@ function TimeOffTab() {
           { label: "Time off days taken", value: "0" },
           { label: "Planned days", value: "0" },
           { label: "Balance", value: "—" },
-          { label: "Tracked members", value: "1" },
+          { label: "Tracked members", value: String(teamMembers.length) },
         ]}
       />
       <Card>

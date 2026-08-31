@@ -40,7 +40,7 @@ function TimeOffScreen() {
             </p>
           </div>
           <div className="ml-auto flex items-center gap-4">
-            <span className="tnum text-sm text-muted-foreground">$2/user/month</span>
+            <span className="tnum text-sm text-muted-foreground">2 €/user/month</span>
             <PrimaryButton>Enable add-on</PrimaryButton>
           </div>
         </div>

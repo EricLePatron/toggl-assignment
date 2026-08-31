@@ -99,14 +99,14 @@ function ProjectsScreen() {
               <td className="px-5 py-3.5 text-center">
                 {p.billable > 0 ? (
                   <span className="inline-flex size-6 items-center justify-center rounded-md bg-accent/20 text-xs text-accent-pink">
-                    $
+                    €
                   </span>
                 ) : (
                   <span className="text-subtle">—</span>
                 )}
               </td>
               <td className="tnum px-5 py-3.5 text-right">
-                {p.rate ? `${p.rate} USD` : <span className="text-subtle">None</span>}
+                {p.rate ? `${p.rate} €/h` : <span className="text-subtle">None</span>}
               </td>
               <td className="px-5 py-3.5 text-muted-foreground">{p.dates}</td>
               <td className="px-5 py-3.5">

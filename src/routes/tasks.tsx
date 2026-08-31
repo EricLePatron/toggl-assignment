@@ -158,7 +158,7 @@ function TasksScreen() {
                 </td>
                 <td className="px-5 py-3.5 text-center">
                   {t.billable ? (
-                    <span className="text-positive">$</span>
+                    <span className="text-positive">€</span>
                   ) : (
                     <span className="text-subtle">—</span>
                   )}

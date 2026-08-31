@@ -81,7 +81,7 @@ function ProjectDetail() {
               <Stat label="Entries" value={String(project.entries)} />
               <Stat
                 label="Rate"
-                value={project.rate ? `${project.rate} USD` : "—"}
+                value={project.rate ? `${project.rate} €/h` : "—"}
                 hint={project.client ? `Client: ${project.client}` : "No client"}
               />
             </div>
@@ -153,9 +153,9 @@ function ProjectDetail() {
           <div className="panel flex divide-x divide-border">
             <Stat
               label="Revenue"
-              value={project.rate ? `${(project.rate * project.billable).toFixed(2)} USD` : "—"}
+              value={money(project.revenue)}
             />
-            <Stat label="Cost" value="—" hint="missing cost rate" />
+            <Stat label="Cost" value={money(project.cost)} hint="labor cost at member rates" />
             <Stat label="Profit" value="—" />
             <Stat label="Margin" value="— %" hint="40 % target" />
           </div>
@@ -183,7 +183,7 @@ function ProjectDetail() {
                   </td>
                   <td className="px-5 py-3 text-muted-foreground">Project manager</td>
                   <td className="tnum px-5 py-3 text-right">
-                    {project.rate ? `${project.rate} USD` : "—"}
+                    {project.rate ? `${project.rate} €/h` : "—"}
                   </td>
                 </tr>
               </tbody>
