@@ -90,20 +90,38 @@ function ProjectDetail() {
             <Card>
               <h2 className="pb-4 text-base font-semibold">Project settings</h2>
               <div className="grid grid-cols-2 gap-4">
-                {["Recurring", "Estimate", "Billable", "Fixed fee"].map((label) => (
-                  <div
-                    key={label}
-                    className="flex items-center gap-3 rounded-xl border border-border bg-surface-2/60 px-4 py-3 opacity-60"
-                  >
-                    <span className="h-5 w-9 rounded-full bg-border p-0.5">
-                      <span className="block size-4 rounded-full bg-subtle" />
-                    </span>
-                    <span className="text-sm">{label}</span>
-                    <span className="grad-accent ml-auto rounded-full px-2 py-0.5 text-[10px] font-semibold text-primary-foreground">
-                      Premium
-                    </span>
-                  </div>
-                ))}
+                {["Recurring", "Estimate", "Billable", "Fixed fee"].map((label) => {
+                  const on = label === "Billable" && project.billableProject;
+                  return (
+                    <div
+                      key={label}
+                      className={cn(
+                        "flex items-center gap-3 rounded-xl border border-border bg-surface-2/60 px-4 py-3",
+                        !on && "opacity-60",
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "h-5 w-9 rounded-full p-0.5",
+                          on ? "grad-accent" : "bg-border",
+                        )}
+                      >
+                        <span
+                          className={cn(
+                            "block size-4 rounded-full",
+                            on ? "translate-x-4 bg-primary-foreground" : "bg-subtle",
+                          )}
+                        />
+                      </span>
+                      <span className="text-sm">{label}</span>
+                      {!on && (
+                        <span className="grad-accent ml-auto rounded-full px-2 py-0.5 text-[10px] font-semibold text-primary-foreground">
+                          Premium
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
               <p className="pt-4 text-sm text-muted-foreground">{workspace.trialCopy}</p>
             </Card>
@@ -157,8 +175,16 @@ function ProjectDetail() {
               value={money(project.revenue)}
             />
             <Stat label="Cost" value={money(project.cost)} hint="labor cost at member rates" />
-            <Stat label="Profit" value="—" />
-            <Stat label="Margin" value="— %" hint="40 % target" />
+            <Stat label="Profit" value={money(project.revenue - project.cost)} />
+            <Stat
+              label="Margin"
+              value={
+                project.revenue
+                  ? `${(((project.revenue - project.cost) / project.revenue) * 100).toFixed(1)} %`
+                  : "— %"
+              }
+              hint="40 % target"
+            />
           </div>
         )}
 
@@ -173,20 +199,22 @@ function ProjectDetail() {
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td className="px-5 py-3">
-                    <span className="inline-flex items-center gap-2">
-                      <span className="flex size-6 items-center justify-center rounded-full bg-surface-2 text-[10px]">
-                        {currentUser.initials}
+                {projectMembers.map((m) => (
+                  <tr key={m.id} className="border-b border-border/60 last:border-0">
+                    <td className="px-5 py-3">
+                      <span className="inline-flex items-center gap-2">
+                        <span className="flex size-6 items-center justify-center rounded-full bg-surface-2 text-[10px]">
+                          {m.initials}
+                        </span>
+                        {m.name}
                       </span>
-                      {currentUser.name}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3 text-muted-foreground">Project manager</td>
-                  <td className="tnum px-5 py-3 text-right">
-                    {project.rate ? `${project.rate} €/h` : "—"}
-                  </td>
-                </tr>
+                    </td>
+                    <td className="px-5 py-3 text-muted-foreground">{m.role}</td>
+                    <td className="tnum px-5 py-3 text-right">
+                      {project.rate ? `${project.rate} €/h` : "—"}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </Card>
