@@ -79,11 +79,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Focus Replica — squelette Toggl Focus" },
+      { title: "Focus Replica — Toggl Focus skeleton" },
       {
         name: "description",
         content:
-          "Squelette d'interface reproduisant la navigation et le design de Toggl Focus, avec données mockées.",
+          "UI skeleton replicating Toggl Focus navigation and design, with mock data.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

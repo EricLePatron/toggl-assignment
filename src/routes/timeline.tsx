@@ -16,19 +16,19 @@ import { currentUser, projectById, projectColorClass, tasks } from "@/data/fixtu
 import { EmptyState, PrimaryButton } from "@/components/app/primitives";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/chronologie")({
+export const Route = createFileRoute("/timeline")({
   head: () => ({
     meta: [
-      { title: "Chronologie — Focus Replica" },
+      { title: "Timeline — Focus Replica" },
       {
         name: "description",
         content:
-          "Vue de capacité par personne : allocations quotidiennes, capacité disponible et sur-allocation.",
+          "Capacity view per person: daily allocations, available capacity and over-allocation.",
       },
-      { property: "og:title", content: "Chronologie — Focus Replica" },
+      { property: "og:title", content: "Timeline — Focus Replica" },
       {
         property: "og:description",
-        content: "Planification de capacité par personne sur la semaine.",
+        content: "Weekly capacity planning per person.",
       },
     ],
   }),
@@ -36,51 +36,51 @@ export const Route = createFileRoute("/chronologie")({
 });
 
 const days = [
-  { label: "Dim", num: 30 },
-  { label: "Lun", num: 31, today: true },
-  { label: "Mar", num: 1 },
-  { label: "Mer", num: 2 },
-  { label: "Jeu", num: 3 },
-  { label: "Ven", num: 4 },
-  { label: "Sam", num: 5 },
+  { label: "Sun", num: 30 },
+  { label: "Mon", num: 31, today: true },
+  { label: "Tue", num: 1 },
+  { label: "Wed", num: 2 },
+  { label: "Thu", num: 3 },
+  { label: "Fri", num: 4 },
+  { label: "Sat", num: 5 },
 ];
 
 const allocations = [
-  { taskId: "t10", startDay: 1, span: 1, perDay: "3h /jour" },
-  { taskId: "t11", startDay: 1, span: 1, perDay: "2h /jour" },
-  { taskId: "t6", startDay: 2, span: 1, perDay: "1h /jour" },
-  { taskId: "t1", startDay: 2, span: 2, perDay: "3h /jour" },
-  { taskId: "t2", startDay: 4, span: 2, perDay: "2h /jour" },
+  { taskId: "t10", startDay: 1, span: 1, perDay: "3h /day" },
+  { taskId: "t11", startDay: 1, span: 1, perDay: "2h /day" },
+  { taskId: "t6", startDay: 2, span: 1, perDay: "1h /day" },
+  { taskId: "t1", startDay: 2, span: 2, perDay: "3h /day" },
+  { taskId: "t2", startDay: 4, span: 2, perDay: "2h /day" },
 ];
 
 function TimelineScreen() {
   return (
     <div className="pb-12">
       <div className="flex items-center gap-3 px-7 pb-3 pt-5">
-        <h1 className="text-2xl font-semibold tracking-tight">Chronologie</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Timeline</h1>
         <PrimaryButton className="ml-auto">
           <Plus className="size-4" />
-          Ajouter un membre
+          Add member
         </PrimaryButton>
       </div>
 
       <div className="flex flex-wrap items-center gap-2 px-7 py-3">
         <button className="pill">
           <Users className="size-3.5 text-muted-foreground" />
-          Personnes
+          People
           <ChevronDown className="size-3.5 text-muted-foreground" />
         </button>
         <button className="pill">
           <Filter className="size-3.5 text-muted-foreground" />
-          Filtres
+          Filters
         </button>
         <button className="pill">
           <ArrowUpDown className="size-3.5 text-muted-foreground" />
-          Trier par : <span className="text-accent-pink">Nom</span>
+          Sort by: <span className="text-accent-pink">Name</span>
         </button>
         <button className="pill">
           <CalendarRange className="size-3.5 text-muted-foreground" />
-          Capacité : <span className="text-accent-pink">Cette semaine</span>
+          Capacity: <span className="text-accent-pink">This week</span>
         </button>
         <div className="ml-auto flex items-center gap-2">
           <button className="pill size-8 justify-center !px-0">
@@ -89,7 +89,7 @@ function TimelineScreen() {
           <button className="pill size-8 justify-center !px-0">
             <ChevronRight className="size-4" />
           </button>
-          <button className="pill">Semaines</button>
+          <button className="pill">Weeks</button>
           <button className="pill size-8 justify-center !px-0">
             <Minus className="size-4" />
           </button>
@@ -104,7 +104,7 @@ function TimelineScreen() {
       <div className="border-y border-border">
         <div className="grid grid-cols-[280px_repeat(7,1fr)] border-b border-border">
           <div className="px-7 py-3 text-sm font-semibold">
-            Personnes <span className="text-muted-foreground">1</span>
+            People <span className="text-muted-foreground">1</span>
           </div>
           {days.map((d) => (
             <div
@@ -126,7 +126,7 @@ function TimelineScreen() {
             <span className="flex size-6 items-center justify-center rounded-full bg-surface-2 text-[10px]">
               AR
             </span>
-            Aucun responsable
+            Unassigned
           </div>
           {days.map((d) => (
             <div key={d.num} className="border-l border-border" />
@@ -148,7 +148,7 @@ function TimelineScreen() {
               </span>
               {currentUser.name}
             </div>
-            <div className="pt-2 text-xs text-positive">30h disponible</div>
+            <div className="pt-2 text-xs text-positive">30h available</div>
           </div>
 
           <div className="relative col-span-7 grid min-h-[400px] grid-cols-7">
@@ -196,9 +196,9 @@ function TimelineScreen() {
       </div>
 
       <EmptyState
-        title="Planifiez la capacité de votre équipe"
-        description="Voyez qui est surbooké ou sous-capacité d'un coup d'œil. Cet espace se remplit avec une voie pour chaque personne que vous invitez."
-        action={<PrimaryButton>Inviter des membres</PrimaryButton>}
+        title="Plan your team's capacity"
+        description="See at a glance who is overbooked or under capacity. This space fills up with a lane for each person you invite."
+        action={<PrimaryButton>Invite members</PrimaryButton>}
         icon={<Users className="size-10" />}
       />
     </div>
