@@ -6,15 +6,15 @@ import { Card, PrimaryButton } from "@/components/app/primitives";
 export const Route = createFileRoute("/members")({
   head: () => ({
     meta: [
-      { title: "Membres — Focus Replica" },
+      { title: "Members — Focus Replica" },
       {
         name: "description",
-        content: "Liste des membres de l'espace de travail avec rôle, groupes et statut.",
+        content: "Workspace member list with role, groups and status.",
       },
-      { property: "og:title", content: "Membres — Focus Replica" },
+      { property: "og:title", content: "Members — Focus Replica" },
       {
         property: "og:description",
-        content: "Membres de l'espace de travail et leurs rôles.",
+        content: "Workspace members and their roles.",
       },
     ],
   }),
@@ -25,21 +25,21 @@ function MembersScreen() {
   return (
     <div className="pb-12">
       <div className="flex items-center gap-3 px-7 pb-3 pt-5">
-        <h1 className="text-2xl font-semibold tracking-tight">Membres</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Members</h1>
         <PrimaryButton className="ml-auto">
           <Plus className="size-4" />
-          Inviter des membres
+          Invite members
         </PrimaryButton>
       </div>
 
       <div className="flex flex-wrap items-center gap-2 px-7 py-3">
         <button className="pill">
-          Actif
+          Active
           <ChevronDown className="size-3.5 text-muted-foreground" />
         </button>
         <button className="pill">
           <Filter className="size-3.5 text-muted-foreground" />
-          Filtres
+          Filters
         </button>
         <div className="ml-auto flex items-center gap-3 text-muted-foreground">
           <Search className="size-4" />
@@ -52,12 +52,12 @@ function MembersScreen() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border">
-                <th className="label-caps px-5 py-2.5 text-left">Nom</th>
-                <th className="label-caps px-5 py-2.5 text-left">E-mail</th>
-                <th className="label-caps px-5 py-2.5 text-left">Rôle</th>
-                <th className="label-caps px-5 py-2.5 text-left">Groupes</th>
-                <th className="label-caps px-5 py-2.5 text-right">Taux de coût</th>
-                <th className="label-caps px-5 py-2.5 text-left">Statut</th>
+                <th className="label-caps px-5 py-2.5 text-left">Name</th>
+                <th className="label-caps px-5 py-2.5 text-left">Email</th>
+                <th className="label-caps px-5 py-2.5 text-left">Role</th>
+                <th className="label-caps px-5 py-2.5 text-left">Groups</th>
+                <th className="label-caps px-5 py-2.5 text-right">Cost rate</th>
+                <th className="label-caps px-5 py-2.5 text-left">Status</th>
               </tr>
             </thead>
             <tbody>

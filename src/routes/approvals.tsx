@@ -6,16 +6,16 @@ import { weekSummary } from "@/data/fixtures";
 export const Route = createFileRoute("/approvals")({
   head: () => ({
     meta: [
-      { title: "Approbations — Focus Replica" },
+      { title: "Approvals — Focus Replica" },
       {
         name: "description",
         content:
-          "Workflow de validation des feuilles de temps : aucune demande en attente sur la période.",
+          "Timesheet approval workflow: no pending requests for the selected period.",
       },
-      { property: "og:title", content: "Approbations — Focus Replica" },
+      { property: "og:title", content: "Approvals — Focus Replica" },
       {
         property: "og:description",
-        content: "Validation des feuilles de temps de l'espace de travail.",
+        content: "Workspace timesheet approvals.",
       },
     ],
   }),
@@ -26,13 +26,13 @@ function ApprovalsScreen() {
   return (
     <div className="pb-12">
       <div className="flex items-center gap-3 px-7 pb-3 pt-5">
-        <h1 className="text-2xl font-semibold tracking-tight">Approbations</h1>
-        <PrimaryButton className="ml-auto">Demander une approbation</PrimaryButton>
+        <h1 className="text-2xl font-semibold tracking-tight">Approvals</h1>
+        <PrimaryButton className="ml-auto">Request approval</PrimaryButton>
       </div>
 
       <div className="flex flex-wrap items-center gap-2 px-7 py-3">
         <button className="pill">
-          En attente
+          Pending
           <ChevronDown className="size-3.5 text-muted-foreground" />
         </button>
         <button className="pill">
@@ -41,7 +41,7 @@ function ApprovalsScreen() {
         </button>
         <button className="pill">
           <Filter className="size-3.5 text-muted-foreground" />
-          Filtres
+          Filters
         </button>
       </div>
 
@@ -49,8 +49,8 @@ function ApprovalsScreen() {
         <Card className="p-0">
           <EmptyState
             icon={<CheckCircle2 className="size-10" />}
-            title="Aucune feuille de temps en attente"
-            description="Les feuilles de temps soumises par les membres apparaîtront ici pour validation. Rien à approuver sur la période sélectionnée."
+            title="No pending timesheets"
+            description="Timesheets submitted by members will show up here for approval. Nothing to approve in the selected period."
           />
         </Card>
       </div>
