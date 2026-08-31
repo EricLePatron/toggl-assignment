@@ -288,17 +288,18 @@ function ProfitabilityTab() {
         <div className="flex gap-3">
           <TriangleAlert className="size-5 shrink-0 text-warning" />
           <div className="text-sm">
-            <div className="font-semibold">Missing data</div>
+            <div className="font-semibold">Rate coverage</div>
             <ul className="list-disc space-y-1 pl-5 pt-2 text-muted-foreground">
+              <li>{profitability.uncoveredLabel}</li>
               <li>
-                Members with no cost rate : {profitability.missingCostRates.join(", ")}
+                Affected projects : {profitability.uncoveredProjects.join(", ") || "—"}
               </li>
               <li>
-                Billable projects with no active rate :{" "}
-                {profitability.missingProjectRates.join(", ")}
+                Non-billable projects : {profitability.nonBillableProjects.join(", ")}
               </li>
             </ul>
           </div>
+
         </div>
       </Card>
       <Card className="p-0">
