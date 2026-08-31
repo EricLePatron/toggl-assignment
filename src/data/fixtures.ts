@@ -1832,3 +1832,6 @@ export const WEEK_OFFSET_MIN = Math.round(
   (mondayOf(WINDOW_START).getTime() - CURRENT_WEEK_START.getTime()) / (7 * 24 * 3600 * 1000),
 );
 export const WEEK_OFFSET_MAX = 4;
+
+/** Default landing week: W36 (Aug 31 – Sep 6 2026). */
+export const DEFAULT_WEEK_OFFSET = isoWeekNumber(d(2026, 8, 31)) - isoWeekNumber(CURRENT_WEEK_START);
