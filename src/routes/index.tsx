@@ -24,6 +24,7 @@ import {
   weekView,
   WEEK_OFFSET_MAX,
   WEEK_OFFSET_MIN,
+  DEFAULT_WEEK_OFFSET,
 } from "@/data/fixtures";
 import { cn } from "@/lib/utils";
 
@@ -62,7 +63,7 @@ function TimerScreen() {
   const [running, setRunning] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [description, setDescription] = useState("");
-  const [weekOffset, setWeekOffset] = useState(0);
+  const [weekOffset, setWeekOffset] = useState(DEFAULT_WEEK_OFFSET);
   const week = weekView(weekOffset);
   const { days: weekDays, events: calendarEvents, summary: weekSummary } = week;
 
