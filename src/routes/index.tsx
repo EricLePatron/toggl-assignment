@@ -59,6 +59,22 @@ const HOUR_PX = 84;
 
 function TimerScreen() {
   const hours = Array.from({ length: END_HOUR - START_HOUR + 1 }, (_, i) => START_HOUR + i);
+  const [running, setRunning] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
+  const [description, setDescription] = useState("");
+
+  useEffect(() => {
+    if (!running) return;
+    const id = setInterval(() => setElapsed((v) => v + 1), 1000);
+    return () => clearInterval(id);
+  }, [running]);
+
+  const startTimer = () => setRunning(true);
+  const stopTimer = () => {
+    setRunning(false);
+    setElapsed(0);
+    setDescription("");
+  };
 
   return (
     <div className="flex h-full flex-col">
