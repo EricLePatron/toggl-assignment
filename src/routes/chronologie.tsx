@@ -151,10 +151,11 @@ function TimelineScreen() {
             <div className="pt-2 text-xs text-positive">30h disponible</div>
           </div>
 
-          <div className="relative col-span-7 grid grid-cols-7">
+          <div className="relative col-span-7 grid min-h-[400px] grid-cols-7">
             {days.map((d) => (
-              <div key={d.num} className="min-h-[340px] border-l border-border" />
+              <div key={d.num} className="border-l border-border" />
             ))}
+
 
             <div className="absolute inset-x-0 top-1 grid grid-cols-7 text-xs">
               <div />
