@@ -20,10 +20,10 @@ import {
   Columns2,
 } from "lucide-react";
 import {
-  calendarEvents,
   projectColorClass,
-  weekDays,
-  weekSummary,
+  weekView,
+  WEEK_OFFSET_MAX,
+  WEEK_OFFSET_MIN,
 } from "@/data/fixtures";
 import { cn } from "@/lib/utils";
 
@@ -62,6 +62,9 @@ function TimerScreen() {
   const [running, setRunning] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [description, setDescription] = useState("");
+  const [weekOffset, setWeekOffset] = useState(0);
+  const week = weekView(weekOffset);
+  const { days: weekDays, events: calendarEvents, summary: weekSummary } = week;
 
   useEffect(() => {
     if (!running) return;
@@ -133,17 +136,32 @@ function TimerScreen() {
 
       {/* Week selector row */}
       <div className="flex items-center gap-2 px-6 py-3">
-        <button className="pill size-8 justify-center !px-0">
+        <button
+          className="pill size-8 justify-center !px-0 disabled:opacity-40"
+          onClick={() => setWeekOffset((o) => Math.max(o - 1, WEEK_OFFSET_MIN))}
+          disabled={weekOffset <= WEEK_OFFSET_MIN}
+          aria-label="Previous week"
+        >
           <ChevronLeft className="size-4" />
         </button>
         <button className="pill">
           <CalendarDays className="size-3.5 text-muted-foreground" />
-          {weekSummary.rangeLabel} • W36
+          {week.rangeLabel} • W{week.weekNumber}
         </button>
-        <button className="pill size-8 justify-center !px-0">
+        <button
+          className="pill size-8 justify-center !px-0 disabled:opacity-40"
+          onClick={() => setWeekOffset((o) => Math.min(o + 1, WEEK_OFFSET_MAX))}
+          disabled={weekOffset >= WEEK_OFFSET_MAX}
+          aria-label="Next week"
+        >
           <ChevronRight className="size-4" />
         </button>
-        <button className="pill">Today</button>
+        <button
+          className={cn("pill", weekOffset === 0 && "text-accent-pink")}
+          onClick={() => setWeekOffset(0)}
+        >
+          Today
+        </button>
 
         <div className="ml-auto flex items-center gap-2">
           <button className="pill">
@@ -278,7 +296,7 @@ function TimerScreen() {
                     );
                   })}
 
-                {dayIndex === 6 && (
+                {week.isCurrent && dayIndex === 2 && (
                   <div
                     className="pointer-events-none absolute inset-x-0 z-10 border-t border-destructive"
                     style={{ top: (10.5 - START_HOUR) * HOUR_PX }}
