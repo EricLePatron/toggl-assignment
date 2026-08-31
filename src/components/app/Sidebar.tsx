@@ -102,17 +102,24 @@ export function Sidebar({ onOpenAsk }: { onOpenAsk: () => void }) {
                       className={cn(
                         "group flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
                         active
-                          ? "grad-accent text-primary-foreground"
+                          ? "bg-[#2a1f3a] text-[#d8b4fe]"
                           : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground",
                       )}
                     >
-                      <item.icon className="size-4 shrink-0" />
+                      <span
+                        className={cn(
+                          "flex size-7 shrink-0 items-center justify-center rounded-full",
+                          active ? "grad-accent text-primary-foreground" : "bg-transparent",
+                        )}
+                      >
+                        <item.icon className="size-4" />
+                      </span>
                       <span className="truncate">{item.label}</span>
                       {item.starred && (
                         <Star
                           className={cn(
                             "ml-auto size-3.5",
-                            active ? "text-primary-foreground" : "text-subtle",
+                            active ? "text-[#d8b4fe]" : "text-subtle",
                           )}
                         />
                       )}

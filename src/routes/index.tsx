@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
-  ArrowUp,
+  Play,
   AtSign,
   CalendarDays,
   ChevronDown,
@@ -93,42 +93,39 @@ function TimerScreen() {
           </span>
         )}
         <div className="ml-auto flex items-center gap-2">
-          <button className="pill border-dashed">
+          <button className="pill pill-dashed">
             <AtSign className="size-3.5 text-muted-foreground" />
             {running && description ? description : "Tâche"}
           </button>
-          <button className="pill border-dashed">
+          <button className="pill pill-dashed">
             <Plus className="size-3.5 text-muted-foreground" />
             Projet
           </button>
-          <button className="pill border-dashed">
+          <button className="pill pill-dashed">
             <Hash className="size-3.5 text-muted-foreground" />
             Étiquettes
           </button>
           <button className="text-muted-foreground transition-colors hover:text-foreground">
             <DollarSign className="size-4" />
           </button>
-          {running && (
-            <>
-              <span className="tnum px-2 text-xl font-semibold">
-                {formatElapsed(elapsed)}
-              </span>
-              <button
-                onClick={stopTimer}
-                className="flex size-9 items-center justify-center rounded-full bg-destructive transition-opacity hover:opacity-90"
-                aria-label="Arrêter le minuteur"
-              >
-                <Square className="size-3.5 fill-background text-background" />
-              </button>
-            </>
-          )}
-          {!running && (
+          <span className="tnum px-2 text-xl font-semibold">
+            {formatElapsed(elapsed)}
+          </span>
+          {running ? (
+            <button
+              onClick={stopTimer}
+              className="flex size-10 items-center justify-center rounded-full bg-destructive transition-opacity hover:opacity-90"
+              aria-label="Arrêter le minuteur"
+            >
+              <Square className="size-4 fill-background text-background" />
+            </button>
+          ) : (
             <button
               onClick={startTimer}
-              className="text-muted-foreground transition-colors hover:text-foreground"
+              className="grad-accent flex size-10 items-center justify-center rounded-full transition-opacity hover:opacity-90"
               aria-label="Démarrer le minuteur"
             >
-              <ArrowUp className="size-4" />
+              <Play className="size-4 fill-background text-background" />
             </button>
           )}
         </div>

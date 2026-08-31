@@ -145,7 +145,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  border-radius: 999px;
+  border-radius: 0.625rem;
   border: 1px solid var(--color-border);
   background: var(--color-surface-2);
   padding: 0.375rem 0.75rem;
@@ -159,6 +159,12 @@
     background: color-mix(in oklab, var(--color-surface-2) 70%, white 8%);
     border-color: color-mix(in oklab, var(--color-border) 60%, white 12%);
   }
+}
+
+@utility pill-dashed {
+  border-style: dashed;
+  border-color: color-mix(in oklab, var(--color-border) 85%, white 10%);
+  color: var(--color-muted-foreground);
 }
 
 @utility panel {
