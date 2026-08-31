@@ -102,7 +102,7 @@ export function Sidebar({ onOpenAsk }: { onOpenAsk: () => void }) {
                       className={cn(
                         "group flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
                         active
-                          ? "bg-[#2a1f3a] text-[#d8b4fe]"
+                          ? "bg-nav-active-bg text-nav-active-text"
                           : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground",
                       )}
                     >
@@ -119,7 +119,7 @@ export function Sidebar({ onOpenAsk }: { onOpenAsk: () => void }) {
                         <Star
                           className={cn(
                             "ml-auto size-3.5",
-                            active ? "text-[#d8b4fe]" : "text-subtle",
+                            active ? "text-nav-active-text" : "text-subtle",
                           )}
                         />
                       )}

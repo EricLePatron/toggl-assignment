@@ -35,6 +35,8 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent-pink: var(--accent-pink);
+  --color-nav-active-bg: var(--nav-active-bg);
+  --color-nav-active-text: var(--nav-active-text);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-warning: var(--warning);
@@ -94,6 +96,9 @@
     var(--accent) 0%,
     var(--accent-pink) 100%
   );
+
+  --nav-active-bg: oklch(0.32 0.08 305);
+  --nav-active-text: oklch(0.82 0.12 305);
 }
 
 @layer base {
