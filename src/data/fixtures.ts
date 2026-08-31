@@ -1358,7 +1358,7 @@ export const totals = {
   profit: totalRevenue - totalCost,
   margin: totalRevenue ? ((totalRevenue - totalCost) / totalRevenue) * 100 : 0,
   amount: money(totalRevenue),
-  avgPerDay: formatHours(totalTracked / Math.max(workingDays, 1)),
+  avgPerDay: formatHours(totalTracked / Math.max(workingDays * teamMembers.length, 1)),
 };
 
 export type MonthStat = {

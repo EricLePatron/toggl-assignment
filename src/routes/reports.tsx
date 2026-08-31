@@ -200,23 +200,25 @@ function SummaryTab() {
 }
 
 function BarChart({ showTarget = false }: { showTarget?: boolean }) {
-  const max = 5;
+  const peak = Math.max(workloadTarget, ...workloadDays.map((d) => d.tracked), 1);
+  const max = Math.ceil(peak / 2) * 2;
+  const ticks = Array.from({ length: 6 }, (_, i) => (max / 5) * (5 - i));
   return (
     <div className="relative h-64">
-      {[5, 4, 3, 2, 1, 0].map((v) => (
+      {ticks.map((v) => (
         <div
           key={v}
           className="absolute inset-x-0 flex items-center gap-3"
           style={{ bottom: `${(v / max) * 100}%` }}
         >
-          <span className="tnum w-6 shrink-0 text-xs text-subtle">{v}h</span>
+          <span className="tnum w-6 shrink-0 text-xs text-subtle">{Math.round(v)}h</span>
           <span className="h-px flex-1 border-t border-dashed border-border" />
         </div>
       ))}
       {showTarget && (
         <div
           className="absolute inset-x-9 border-t-2 border-warning"
-          style={{ bottom: `${(workloadTarget / 10) * 100}%` }}
+          style={{ bottom: `${(workloadTarget / max) * 100}%` }}
         />
       )}
       <div className="absolute inset-y-0 left-9 right-0 flex items-end gap-6">
@@ -226,7 +228,7 @@ function BarChart({ showTarget = false }: { showTarget?: boolean }) {
             <div
               className={cn(
                 "w-full rounded-t-sm",
-                d.tracked > 3 ? "bg-accent" : "bg-accent-pink/50",
+                d.tracked >= workloadTarget * 0.6 ? "bg-accent" : "bg-accent-pink/50",
               )}
               style={{ height: `${(d.tracked / max) * 210}px` }}
             />
@@ -251,7 +253,7 @@ function WorkloadTab() {
       <Card>
         <div className="flex items-center gap-2 pb-6">
           <h2 className="text-base font-semibold">Am I overworked?</h2>
-          <span className="pill !py-1 text-xs">Target: 8h / day</span>
+          <span className="pill !py-1 text-xs">Target: {workloadTarget}h / day</span>
         </div>
         <BarChart showTarget />
         <div className="flex items-center justify-center gap-6 pt-16 text-xs text-muted-foreground">
