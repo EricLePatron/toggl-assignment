@@ -16,15 +16,15 @@ import {
 import {
   profitability,
   projects,
-  timeLogs,
-  totals,
-  utilization,
-  weekSummary,
-  workloadDays,
+  weekView,
+  WEEK_OFFSET_MAX,
+  WEEK_OFFSET_MIN,
   workloadTarget,
   projectColorClass,
   money,
   teamMembers,
+  formatHours,
+  type WeekView,
 } from "@/data/fixtures";
 import { Card, Stat, Tabs } from "@/components/app/primitives";
 import { cn } from "@/lib/utils";
@@ -59,6 +59,8 @@ const TABS = [
 
 function ReportsScreen() {
   const [tab, setTab] = useState<string>("Summary");
+  const [weekOffset, setWeekOffset] = useState(0);
+  const week = weekView(weekOffset);
 
   return (
     <div className="pb-12">
@@ -80,14 +82,24 @@ function ReportsScreen() {
           <ChevronDown className="size-3.5 text-muted-foreground" />
         </button>
         <div className="flex items-center gap-1">
-          <button className="pill size-8 justify-center !px-0">
+          <button
+            className="pill size-8 justify-center !px-0 disabled:opacity-40"
+            onClick={() => setWeekOffset((o) => Math.max(o - 1, WEEK_OFFSET_MIN))}
+            disabled={weekOffset <= WEEK_OFFSET_MIN}
+            aria-label="Previous week"
+          >
             <ChevronLeft className="size-4" />
           </button>
           <button className="pill">
             <CalendarDays className="size-3.5 text-muted-foreground" />
-            {weekSummary.rangeLabel}
+            {week.rangeLabel} • W{week.weekNumber}
           </button>
-          <button className="pill size-8 justify-center !px-0">
+          <button
+            className="pill size-8 justify-center !px-0 disabled:opacity-40"
+            onClick={() => setWeekOffset((o) => Math.min(o + 1, WEEK_OFFSET_MAX))}
+            disabled={weekOffset >= WEEK_OFFSET_MAX}
+            aria-label="Next week"
+          >
             <ChevronRight className="size-4" />
           </button>
         </div>
@@ -95,7 +107,12 @@ function ReportsScreen() {
           <Filter className="size-3.5 text-muted-foreground" />
           Filters
         </button>
-        <button className="pill">Today</button>
+        <button
+          className={cn("pill", weekOffset === 0 && "text-accent-pink")}
+          onClick={() => setWeekOffset(0)}
+        >
+          This week
+        </button>
         <button className="pill">
           <Plus className="size-3.5" />
           Filter
@@ -113,11 +130,11 @@ function ReportsScreen() {
       </div>
 
       <div className="space-y-5 px-7">
-        {tab === "Summary" && <SummaryTab />}
-        {tab === "Utilization" && <UtilizationTab />}
-        {tab === "Workload" && <WorkloadTab />}
-        {tab === "Profitability" && <ProfitabilityTab />}
-        {tab === "Time logs" && <TimeLogsTab />}
+        {tab === "Summary" && <SummaryTab week={week} />}
+        {tab === "Utilization" && <UtilizationTab week={week} />}
+        {tab === "Workload" && <WorkloadTab week={week} />}
+        {tab === "Profitability" && <ProfitabilityTab week={week} />}
+        {tab === "Time logs" && <TimeLogsTab week={week} />}
         {tab === "Time off" && <TimeOffTab />}
       </div>
     </div>
@@ -134,20 +151,20 @@ function StatRow({ items }: { items: { label: string; value: string; hint?: stri
   );
 }
 
-function SummaryTab() {
+function SummaryTab({ week }: { week: WeekView }) {
   return (
     <>
       <StatRow
         items={[
-          { label: "Tracked time", value: weekSummary.tracked },
-          { label: "Billable time", value: weekSummary.billableShare },
-          { label: "Amount", value: weekSummary.amount },
-          { label: "Average hours per day", value: totals.avgPerDay },
+          { label: "Tracked time", value: formatHours(week.team.tracked) },
+          { label: "Billable time", value: formatHours(week.team.billable) },
+          { label: "Amount", value: week.team.amount },
+          { label: "Average hours per day", value: week.team.avgPerDay },
         ]}
       />
       <Card>
         <h2 className="pb-6 text-base font-semibold">Billable vs non-billable time</h2>
-        <BarChart />
+        <BarChart week={week} />
         <div className="flex items-center justify-center gap-6 pt-16 text-xs text-muted-foreground">
           <span className="flex items-center gap-2">
             <span className="size-2.5 rounded-[3px] bg-accent" /> Billable
@@ -172,7 +189,7 @@ function SummaryTab() {
             </tr>
           </thead>
           <tbody>
-            {projects.map((p) => (
+            {week.projectRows.map(({ project: p, ...r }) => (
               <tr key={p.id} className="border-b border-border/60">
                 <td className="px-5 py-3">
                   <span className="inline-flex items-center gap-2">
@@ -183,12 +200,12 @@ function SummaryTab() {
                   </span>
                 </td>
                 <td className="px-5 py-3 text-muted-foreground">{p.client ?? "—"}</td>
-                <td className="tnum px-5 py-3 text-right">{formatH(p.tracked)}</td>
+                <td className="tnum px-5 py-3 text-right">{formatH(r.tracked)}</td>
                 <td className="tnum px-5 py-3 text-right text-muted-foreground">
-                  {p.entries}
+                  {r.entries}
                 </td>
                 <td className="tnum px-5 py-3 text-right">
-                  {p.billableProject ? money(p.revenue) : "—"}
+                  {p.billableProject ? money(r.revenue) : "—"}
                 </td>
               </tr>
             ))}
@@ -199,7 +216,8 @@ function SummaryTab() {
   );
 }
 
-function BarChart({ showTarget = false }: { showTarget?: boolean }) {
+function BarChart({ week, showTarget = false }: { week: WeekView; showTarget?: boolean }) {
+  const workloadDays = week.workloadDays;
   const peak = Math.max(workloadTarget, ...workloadDays.map((d) => d.tracked), 1);
   const max = Math.ceil(peak / 2) * 2;
   const ticks = Array.from({ length: 6 }, (_, i) => (max / 5) * (5 - i));
@@ -247,7 +265,7 @@ function BarChart({ showTarget = false }: { showTarget?: boolean }) {
   );
 }
 
-function WorkloadTab() {
+function WorkloadTab({ week }: { week: WeekView }) {
   return (
     <>
       <Card>
@@ -255,7 +273,7 @@ function WorkloadTab() {
           <h2 className="text-base font-semibold">Am I overworked?</h2>
           <span className="pill !py-1 text-xs">Target: {workloadTarget}h / day</span>
         </div>
-        <BarChart showTarget />
+        <BarChart week={week} showTarget />
         <div className="flex items-center justify-center gap-6 pt-16 text-xs text-muted-foreground">
           <span className="flex items-center gap-2">
             <span className="h-0.5 w-4 bg-warning" /> Target working hours
@@ -267,25 +285,33 @@ function WorkloadTab() {
       </Card>
       <StatRow
         items={[
-          { label: "Tracked time", value: weekSummary.tracked },
-          { label: "Weekly capacity", value: "40h" },
-          { label: "Gap", value: "-29h 45m", hint: "under capacity" },
-          { label: "Average hours per day", value: totals.avgPerDay },
+          { label: "Tracked time", value: week.summary.tracked },
+          { label: "Weekly capacity", value: week.summary.planned },
+          {
+            label: "Gap",
+            value: formatHours(Math.abs(week.summary.trackedHours - 35)),
+            hint: week.summary.trackedHours >= 35 ? "over capacity" : "under capacity",
+          },
+          { label: "Average hours per day", value: week.team.avgPerDay },
         ]}
       />
     </>
   );
 }
 
-function ProfitabilityTab() {
+function ProfitabilityTab({ week }: { week: WeekView }) {
   return (
     <>
       <StatRow
         items={[
-          { label: "Revenue", value: profitability.revenue },
-          { label: "Cost", value: profitability.cost },
-          { label: "Profit", value: profitability.profit },
-          { label: "Margin", value: profitability.margin, hint: "40 % target" },
+          { label: "Revenue", value: money(week.team.revenue) },
+          { label: "Cost", value: money(week.team.cost) },
+          { label: "Profit", value: money(week.team.profit) },
+          {
+            label: "Margin",
+            value: `${week.team.margin.toFixed(1)} %`,
+            hint: "40 % target",
+          },
         ]}
       />
       <Card className="border-warning/40">
@@ -294,9 +320,12 @@ function ProfitabilityTab() {
           <div className="text-sm">
             <div className="font-semibold">Rate coverage</div>
             <ul className="list-disc space-y-1 pl-5 pt-2 text-muted-foreground">
-              <li>{profitability.uncoveredLabel}</li>
               <li>
-                Affected projects : {profitability.uncoveredProjects.join(", ") || "—"}
+                {formatHours(week.team.uncoveredHours)} logged as billable this week
+                before any rate was active
+              </li>
+              <li>
+                Affected projects : {week.team.uncoveredProjects.join(", ") || "—"}
               </li>
               <li>
                 Non-billable projects : {profitability.nonBillableProjects.join(", ")}
@@ -317,15 +346,15 @@ function ProfitabilityTab() {
             </tr>
           </thead>
           <tbody>
-            {projects.map((p) => (
+            {week.projectRows.map(({ project: p, ...r }) => (
               <tr key={p.id} className="border-b border-border/60 last:border-0">
                 <td className="px-5 py-3">{p.name}</td>
                 <td className="tnum px-5 py-3 text-right text-muted-foreground">
                   {p.rate ? `${p.rate} €/h` : "—"}
                 </td>
-                <td className="tnum px-5 py-3 text-right">{formatH(p.billable)}</td>
+                <td className="tnum px-5 py-3 text-right">{formatH(r.billable)}</td>
                 <td className="tnum px-5 py-3 text-right">
-                  {p.billableProject ? money(p.revenue) : "—"}
+                  {p.billableProject ? money(r.revenue) : "—"}
                 </td>
               </tr>
             ))}
@@ -336,15 +365,15 @@ function ProfitabilityTab() {
   );
 }
 
-function UtilizationTab() {
+function UtilizationTab({ week }: { week: WeekView }) {
   return (
     <>
       <StatRow
         items={[
-          { label: "Utilization rate", value: `${utilization.billableShare} %` },
-          { label: "Target", value: `${utilization.target} %` },
-          { label: "Billable time", value: formatH(totals.billable) },
-          { label: "Tracked time", value: formatH(totals.tracked) },
+          { label: "Utilization rate", value: `${week.team.billableShare} %` },
+          { label: "Target", value: "60 %" },
+          { label: "Billable time", value: formatHours(week.team.billable) },
+          { label: "Tracked time", value: formatHours(week.team.tracked) },
         ]}
       />
       <Card className="p-0">
@@ -358,7 +387,7 @@ function UtilizationTab() {
             </tr>
           </thead>
           <tbody>
-            {utilization.rows.map((r) => (
+            {week.memberRows.map((r) => (
               <tr key={r.member} className="border-b border-border/60 last:border-0">
                 <td className="px-5 py-3">{r.member}</td>
                 <td className="tnum px-5 py-3 text-right">{r.tracked}</td>
@@ -373,7 +402,7 @@ function UtilizationTab() {
   );
 }
 
-function TimeLogsTab() {
+function TimeLogsTab({ week }: { week: WeekView }) {
   return (
     <Card className="p-0">
       <table className="w-full text-sm">
@@ -387,7 +416,7 @@ function TimeLogsTab() {
           </tr>
         </thead>
         <tbody>
-          {timeLogs.map((l, i) => (
+          {week.logs.map((l, i) => (
             <tr key={i} className="border-b border-border/60 last:border-0">
               <td className="tnum px-5 py-3 text-muted-foreground">{l.date}</td>
               <td className="px-5 py-3">{l.description}</td>
