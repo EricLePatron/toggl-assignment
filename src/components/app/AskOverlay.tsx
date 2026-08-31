@@ -9,14 +9,14 @@ export function AskOverlay({ open, onClose }: { open: boolean; onClose: () => vo
       <div className="panel flex max-h-[80vh] w-full max-w-3xl flex-col overflow-hidden shadow-2xl">
         <div className="flex items-center gap-2 border-b border-border px-5 py-3">
           <Sparkle className="size-4 text-accent-pink" />
-          <span className="text-sm font-semibold">Demander à Toggl</span>
+          <span className="text-sm font-semibold">Ask Toggl</span>
           <kbd className="ml-2 rounded border border-border px-1.5 text-[10px] text-subtle">
             ⌘K
           </kbd>
           <button
             onClick={onClose}
             className="ml-auto text-muted-foreground transition-colors hover:text-foreground"
-            aria-label="Fermer"
+            aria-label="Close"
           >
             <X className="size-4" />
           </button>
@@ -70,7 +70,7 @@ export function AskOverlay({ open, onClose }: { open: boolean; onClose: () => vo
 
                 {msg.takeaways && (
                   <div>
-                    <div className="label-caps pb-1.5">À retenir</div>
+                    <div className="label-caps pb-1.5">Takeaways</div>
                     <ul className="list-disc space-y-1 pl-5 text-muted-foreground">
                       {msg.takeaways.map((t) => (
                         <li key={t}>{t}</li>
@@ -95,7 +95,7 @@ export function AskOverlay({ open, onClose }: { open: boolean; onClose: () => vo
 
         <div className="border-t border-border p-4">
           <div className="flex items-center gap-2 rounded-xl border border-border bg-surface-2 px-4 py-3 text-sm text-subtle">
-            Poser une question sur votre temps, vos projets ou vos clients…
+            Ask anything about your time, projects or clients…
           </div>
         </div>
       </div>

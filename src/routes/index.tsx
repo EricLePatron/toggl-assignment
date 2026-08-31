@@ -37,16 +37,16 @@ function formatElapsed(totalSeconds: number) {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Minuteur — Focus Replica" },
+      { title: "Timer — Focus Replica" },
       {
         name: "description",
         content:
-          "Vue calendrier hebdomadaire du minuteur : temps enregistré, blocs par projet et suivi en cours.",
+          "Weekly calendar view of the timer: tracked time, project blocks and running entry.",
       },
-      { property: "og:title", content: "Minuteur — Focus Replica" },
+      { property: "og:title", content: "Timer — Focus Replica" },
       {
         property: "og:description",
-        content: "Vue calendrier hebdomadaire du minuteur avec données mockées.",
+        content: "Weekly calendar view of the timer with mock data.",
       },
     ],
   }),
@@ -84,26 +84,26 @@ function TimerScreen() {
           <input
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Sur quoi travaillez-vous ?"
+            placeholder="What are you working on?"
             className="w-72 bg-transparent text-lg font-semibold outline-none placeholder:text-muted-foreground"
           />
         ) : (
           <span className="text-lg font-semibold text-muted-foreground">
-            Sur quoi travaillez-vous ?
+            What are you working on?
           </span>
         )}
         <div className="ml-auto flex items-center gap-2">
           <button className="pill pill-dashed">
             <AtSign className="size-3.5 text-muted-foreground" />
-            {running && description ? description : "Tâche"}
+            {running && description ? description : "Task"}
           </button>
           <button className="pill pill-dashed">
             <Plus className="size-3.5 text-muted-foreground" />
-            Projet
+            Project
           </button>
           <button className="pill pill-dashed">
             <Hash className="size-3.5 text-muted-foreground" />
-            Étiquettes
+            Tags
           </button>
           <button className="text-muted-foreground transition-colors hover:text-foreground">
             <DollarSign className="size-4" />
@@ -115,7 +115,7 @@ function TimerScreen() {
             <button
               onClick={stopTimer}
               className="flex size-10 items-center justify-center rounded-full bg-destructive transition-opacity hover:opacity-90"
-              aria-label="Arrêter le minuteur"
+              aria-label="Stop timer"
             >
               <Square className="size-4 fill-background text-background" />
             </button>
@@ -123,7 +123,7 @@ function TimerScreen() {
             <button
               onClick={startTimer}
               className="grad-accent flex size-10 items-center justify-center rounded-full transition-opacity hover:opacity-90"
-              aria-label="Démarrer le minuteur"
+              aria-label="Start timer"
             >
               <Play className="size-4 fill-background text-background" />
             </button>
@@ -138,16 +138,16 @@ function TimerScreen() {
         </button>
         <button className="pill">
           <CalendarDays className="size-3.5 text-muted-foreground" />
-          {weekSummary.rangeLabel} • S35
+          {weekSummary.rangeLabel} • W36
         </button>
         <button className="pill size-8 justify-center !px-0">
           <ChevronRight className="size-4" />
         </button>
-        <button className="pill">Aujourd'hui</button>
+        <button className="pill">Today</button>
 
         <div className="ml-auto flex items-center gap-2">
           <button className="pill">
-            Semaine
+            Week
             <ChevronDown className="size-3.5 text-muted-foreground" />
           </button>
           <div className="flex items-center gap-1 rounded-full border border-border bg-surface-2 p-1">
@@ -175,7 +175,7 @@ function TimerScreen() {
 
       {/* Progress bar */}
       <div className="flex items-center gap-4 px-6 pb-3">
-        <span className="text-sm text-muted-foreground">Enregistré</span>
+        <span className="text-sm text-muted-foreground">Tracked</span>
         <div className="relative h-2 flex-1 overflow-hidden rounded-full bg-surface-2">
           <div
             className="grad-accent absolute inset-y-0 left-0 rounded-full"
@@ -188,10 +188,10 @@ function TimerScreen() {
         </div>
         <span className="tnum text-sm font-semibold">{weekSummary.tracked}</span>
         <span className="text-sm text-muted-foreground">
-          Prévu {weekSummary.planned}
+          Planned {weekSummary.planned}
         </span>
         <button className="text-sm text-muted-foreground transition-colors hover:text-foreground">
-          Voir les rapports ›
+          View reports ›
         </button>
       </div>
 
