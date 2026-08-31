@@ -209,7 +209,7 @@ const projectSeeds: ProjectSeed[] = [
     color: "teal",
     billableProject: true,
     rate: 110,
-    rateEffectiveFrom: d(2026, 7, 1),
+    rateEffectiveFrom: d(2026, 6, 29),
     start: d(2026, 7, 1),
     end: d(2026, 9, 30),
     status: "Active",
@@ -413,8 +413,8 @@ const taskSeeds: TaskSeed[] = [
     assignee: "ao",
     estimate: 14,
     factor: 1.07,
-    start: d(2026, 4, 20),
-    end: d(2026, 5, 1),
+    start: d(2026, 6, 1),
+    end: d(2026, 6, 12),
     priority: "High",
     tag: "Feature",
     status: "Done",
@@ -944,12 +944,12 @@ const ratioByMonth: Record<string, Record<string, number>> = {
 
 /** Internal (non-billable) load multiplier per month — drives the margin trend. */
 const internalBumpByMonth: Record<string, number> = {
-  "2026-03": 0.8,
-  "2026-04": 0.85,
-  "2026-05": 1.8,
-  "2026-06": 1.1,
-  "2026-07": 1.45,
-  "2026-08": 1.5,
+  "2026-03": 0.55,
+  "2026-04": 0.6,
+  "2026-05": 1.9,
+  "2026-06": 1.35,
+  "2026-07": 1.65,
+  "2026-08": 1.75,
 };
 
 /** Non-billable, untagged "general / misc" time — small but real and growing. */
