@@ -70,7 +70,7 @@ const q = (h: number) => Math.round(h * 4) / 4;
 export const TODAY = d(2026, 9, 30);
 export const WINDOW_START = d(2026, 3, 1);
 export const WINDOW_END = d(2026, 9, 30);
-export const CURRENT_WEEK_START = mondayOf(TODAY); // Mon Aug 31 2026
+export const CURRENT_WEEK_START = mondayOf(TODAY); // Mon Sep 28 2026
 
 /* ------------------------------------------------------------------ */
 /* Workspace, members                                                  */
