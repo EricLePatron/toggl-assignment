@@ -1677,3 +1677,158 @@ export const askConversation = [
     ],
   },
 ];
+
+/* ------------------------------------------------------------------ */
+/* Week navigation: everything a week-scoped screen needs              */
+/* ------------------------------------------------------------------ */
+
+export function isoWeekNumber(date: Date) {
+  const t = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  const day = (t.getUTCDay() + 6) % 7;
+  t.setUTCDate(t.getUTCDate() - day + 3);
+  const firstThursday = new Date(Date.UTC(t.getUTCFullYear(), 0, 4));
+  const fday = (firstThursday.getUTCDay() + 6) % 7;
+  firstThursday.setUTCDate(firstThursday.getUTCDate() - fday + 3);
+  return 1 + Math.round((t.getTime() - firstThursday.getTime()) / (7 * 24 * 3600 * 1000));
+}
+
+/** Everything the Timer and Reports screens need for one week (offset in weeks from today's week). */
+export function weekView(offset = 0) {
+  const start = addDays(CURRENT_WEEK_START, offset * 7);
+  const from = iso(start);
+  const to = iso(addDays(start, 6));
+  const all = timeEntries.filter((e) => e.date >= from && e.date <= to);
+  const mine = all.filter((e) => e.memberId === currentUser.id);
+
+  const days = Array.from({ length: 7 }, (_, i) => {
+    const date = addDays(start, i);
+    const hours = mine
+      .filter((e) => e.date === iso(date))
+      .reduce((s, e) => s + e.duration, 0);
+    return {
+      label: (["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const)[i]!,
+      num: date.getUTCDate(),
+      date: iso(date),
+      hours: hours ? formatHours(hours) : "–",
+    };
+  });
+
+  const events: CalendarEvent[] = mine.map((e) => {
+    const project = e.projectId ? projectById(e.projectId) : null;
+    const day = Math.round((Date.parse(e.date) - start.getTime()) / (24 * 3600 * 1000));
+    return {
+      id: e.id,
+      day,
+      start: e.start,
+      end: e.end,
+      title: e.description,
+      ...(project ? { subtitle: project.name } : {}),
+      duration: formatHours(e.duration),
+      color: project?.color ?? "pink",
+      billable: e.billable,
+    };
+  });
+
+  const tracked = mine.reduce((s, e) => s + e.duration, 0);
+  const billable = mine.filter((e) => e.billable).reduce((s, e) => s + e.duration, 0);
+  const revenue = mine.reduce((s, e) => s + e.revenue, 0);
+  const capacity = currentUser.capacity ?? 35;
+
+  const teamTracked = all.reduce((s, e) => s + e.duration, 0);
+  const teamBillable = all.filter((e) => e.billable).reduce((s, e) => s + e.duration, 0);
+  const teamRevenue = all.reduce((s, e) => s + e.revenue, 0);
+  const teamCost = all.reduce(
+    (s, e) => s + e.duration * memberById(e.memberId).costRate,
+    0,
+  );
+  const activeDays = new Set(all.map((e) => e.date)).size;
+
+  const uncovered = all.filter((e) => e.billable && e.revenue === 0);
+
+  return {
+    offset,
+    start,
+    from,
+    to,
+    isCurrent: offset === 0,
+    weekNumber: isoWeekNumber(start),
+    rangeLabel: `${shortDate(start)} - ${shortDate(addDays(start, 6))} ${start.getUTCFullYear()}`,
+    weekLabel: `${offset === 0 ? "This week" : offset === -1 ? "Last week" : shortDate(start)} • W${isoWeekNumber(start)}`,
+    days,
+    events,
+    summary: {
+      tracked: formatHours(tracked),
+      trackedHours: q(tracked),
+      planned: formatHours(capacity),
+      progress: Math.min(tracked / capacity, 1),
+      billableHours: q(billable),
+      billableShare: `${formatHours(billable)} (${Math.round((billable / Math.max(tracked, 0.01)) * 100)} %)`,
+      amount: money(revenue),
+    },
+    workloadDays: Array.from({ length: 5 }, (_, i) => {
+      const date = addDays(start, i);
+      return {
+        label: (["Mon", "Tue", "Wed", "Thu", "Fri"] as const)[i]!,
+        date: `${date.getUTCMonth() + 1}/${date.getUTCDate()}`,
+        tracked: q(mine.filter((e) => e.date === iso(date)).reduce((s, e) => s + e.duration, 0)),
+      };
+    }),
+    team: {
+      tracked: q(teamTracked),
+      billable: q(teamBillable),
+      revenue: teamRevenue,
+      cost: teamCost,
+      profit: teamRevenue - teamCost,
+      margin: teamRevenue ? ((teamRevenue - teamCost) / teamRevenue) * 100 : 0,
+      amount: money(teamRevenue),
+      avgPerDay: formatHours(teamTracked / Math.max(activeDays * teamMembers.length, 1)),
+      billableShare: teamTracked ? Math.round((teamBillable / teamTracked) * 100) : 0,
+      uncoveredHours: q(uncovered.reduce((s, e) => s + e.duration, 0)),
+      uncoveredProjects: [
+        ...new Set(uncovered.map((e) => projectById(e.projectId!)?.name ?? "—")),
+      ],
+    },
+    projectRows: projects.map((p) => {
+      const rows = all.filter((e) => e.projectId === p.id);
+      return {
+        project: p,
+        tracked: q(rows.reduce((s, e) => s + e.duration, 0)),
+        billable: q(rows.filter((e) => e.billable).reduce((s, e) => s + e.duration, 0)),
+        entries: rows.length,
+        revenue: rows.reduce((s, e) => s + e.revenue, 0),
+      };
+    }),
+    memberRows: teamMembers.map((m) => {
+      const rows = all.filter((e) => e.memberId === m.id);
+      const t = rows.reduce((s, e) => s + e.duration, 0);
+      const b = rows.filter((e) => e.billable).reduce((s, e) => s + e.duration, 0);
+      return {
+        member: m.name,
+        capacity: m.capacity,
+        tracked: formatHours(t),
+        trackedHours: q(t),
+        billable: formatHours(b),
+        util: `${t ? Math.round((b / t) * 100) : 0} %`,
+      };
+    }),
+    logs: [...all]
+      .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : b.start - a.start))
+      .slice(0, 25)
+      .map((e) => ({
+        date: shortDate(new Date(`${e.date}T00:00:00Z`)),
+        description: e.description,
+        project: e.projectId ? projectById(e.projectId)!.name : "— No project",
+        member: memberById(e.memberId).name,
+        duration: formatHours(e.duration),
+        billable: e.billable,
+      })),
+  };
+}
+
+export type WeekView = ReturnType<typeof weekView>;
+
+/** How far back/forward navigation may go, in week offsets from the current week. */
+export const WEEK_OFFSET_MIN = Math.round(
+  (mondayOf(WINDOW_START).getTime() - CURRENT_WEEK_START.getTime()) / (7 * 24 * 3600 * 1000),
+);
+export const WEEK_OFFSET_MAX = 4;
