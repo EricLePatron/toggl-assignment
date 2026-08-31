@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import {
+  ArrowUp,
   AtSign,
   CalendarDays,
   ChevronDown,
@@ -20,11 +22,17 @@ import {
 import {
   calendarEvents,
   projectColorClass,
-  runningTimer,
   weekDays,
   weekSummary,
 } from "@/data/fixtures";
 import { cn } from "@/lib/utils";
+
+function formatElapsed(totalSeconds: number) {
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+  return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -51,38 +59,78 @@ const HOUR_PX = 84;
 
 function TimerScreen() {
   const hours = Array.from({ length: END_HOUR - START_HOUR + 1 }, (_, i) => START_HOUR + i);
+  const [running, setRunning] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
+  const [description, setDescription] = useState("");
+
+  useEffect(() => {
+    if (!running) return;
+    const id = setInterval(() => setElapsed((v) => v + 1), 1000);
+    return () => clearInterval(id);
+  }, [running]);
+
+  const startTimer = () => setRunning(true);
+  const stopTimer = () => {
+    setRunning(false);
+    setElapsed(0);
+    setDescription("");
+  };
 
   return (
     <div className="flex h-full flex-col">
       {/* Top bar */}
       <div className="flex items-center gap-3 border-b border-border px-6 py-3">
-        <span className="text-lg font-semibold">Sur quoi travaillez-vous ?</span>
+        {running ? (
+          <input
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Sur quoi travaillez-vous ?"
+            className="w-72 bg-transparent text-lg font-semibold outline-none placeholder:text-muted-foreground"
+          />
+        ) : (
+          <span className="text-lg font-semibold text-muted-foreground">
+            Sur quoi travaillez-vous ?
+          </span>
+        )}
         <div className="ml-auto flex items-center gap-2">
-          <button className="pill">
+          <button className="pill border-dashed">
             <AtSign className="size-3.5 text-muted-foreground" />
-            {runningTimer.description}
+            {running && description ? description : "Tâche"}
           </button>
-          <button className="pill">
-            <Folder className="size-3.5 text-positive" />
-            {runningTimer.project}
+          <button className="pill border-dashed">
+            <Plus className="size-3.5 text-muted-foreground" />
+            Projet
           </button>
-          <button className="pill">
+          <button className="pill border-dashed">
             <Hash className="size-3.5 text-muted-foreground" />
             Étiquettes
           </button>
           <button className="text-muted-foreground transition-colors hover:text-foreground">
             <DollarSign className="size-4" />
           </button>
-          <span className="tnum px-2 text-xl font-semibold">{runningTimer.elapsed}</span>
-          <button
-            className="flex size-9 items-center justify-center rounded-full bg-destructive transition-opacity hover:opacity-90"
-            aria-label="Arrêter le minuteur"
-          >
-            <Square className="size-3.5 fill-background text-background" />
-          </button>
-          <button className="text-muted-foreground transition-colors hover:text-foreground">
-            <MoreVertical className="size-4" />
-          </button>
+          {running && (
+            <>
+              <span className="tnum px-2 text-xl font-semibold">
+                {formatElapsed(elapsed)}
+              </span>
+              <button
+                onClick={stopTimer}
+                className="flex size-9 items-center justify-center rounded-full bg-destructive transition-opacity hover:opacity-90"
+                aria-label="Arrêter le minuteur"
+              >
+                <Square className="size-3.5 fill-background text-background" />
+              </button>
+            </>
+          )}
+          {!running && (
+            <button
+              onClick={startTimer}
+              className="text-muted-foreground transition-colors hover:text-foreground"
+              aria-label="Démarrer le minuteur"
+            >
+              <ArrowUp className="size-4" />
+            </button>
+          )}
         </div>
       </div>
 
