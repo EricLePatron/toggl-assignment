@@ -964,6 +964,7 @@ const miscByMonth: Record<string, number> = {
   "2026-06": 0.85,
   "2026-07": 1.0,
   "2026-08": 1.15,
+  "2026-09": 1.25,
 };
 
 const miscDescriptions = [
