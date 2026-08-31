@@ -24,6 +24,7 @@ import {
   weekView,
   WEEK_OFFSET_MAX,
   WEEK_OFFSET_MIN,
+  DEFAULT_WEEK_OFFSET,
 } from "@/data/fixtures";
 import { cn } from "@/lib/utils";
 

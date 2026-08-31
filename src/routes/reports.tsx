@@ -18,6 +18,7 @@ import {
   weekView,
   WEEK_OFFSET_MAX,
   WEEK_OFFSET_MIN,
+  DEFAULT_WEEK_OFFSET,
   workloadTarget,
   projectColorClass,
   money,
