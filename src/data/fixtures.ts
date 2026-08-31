@@ -6,7 +6,7 @@
  * entries. Every figure displayed in the app derives from `timeEntries`,
  * so no two screens can contradict each other.
  *
- * Window: March 1 2026 → August 31 2026 ("today" = Monday August 31 2026).
+ * Window: March 1 2026 → September 30 2026 ("today" = Wednesday September 30 2026).
  */
 
 /* ------------------------------------------------------------------ */
