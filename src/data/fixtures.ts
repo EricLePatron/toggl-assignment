@@ -67,9 +67,9 @@ const rand = mulberry32(20260831);
 const jitter = (base: number, pct: number) => base * (1 + (rand() * 2 - 1) * pct);
 const q = (h: number) => Math.round(h * 4) / 4;
 
-export const TODAY = d(2026, 8, 31);
+export const TODAY = d(2026, 9, 30);
 export const WINDOW_START = d(2026, 3, 1);
-export const WINDOW_END = d(2026, 8, 31);
+export const WINDOW_END = d(2026, 9, 30);
 export const CURRENT_WEEK_START = mondayOf(TODAY); // Mon Aug 31 2026
 
 /* ------------------------------------------------------------------ */
@@ -366,8 +366,8 @@ const taskSeeds: TaskSeed[] = [
     assignee: "ao",
     estimate: 10,
     factor: 1.45,
-    start: d(2026, 8, 24),
-    end: d(2026, 9, 3), // due in 3 days, already over estimate
+    start: d(2026, 9, 21),
+    end: d(2026, 10, 3), // due in 3 days, already over estimate
     priority: "High",
     tag: INTEGRATION_TAG,
     status: "In Progress",
@@ -909,8 +909,8 @@ const LAST_FULL_WEEK_KEY = iso(addDays(CURRENT_WEEK_START, -7)); // Aug 24
 /** Working days available in a given week (Mon..Fri offsets). */
 function weekdaysOf(weekStart: Date): number[] {
   const key = iso(weekStart);
-  if (key === CURRENT_WEEK_KEY) return [0]; // only Monday Aug 31 logged so far
-  if (key === LAST_FULL_WEEK_KEY) return [0, 1, 2, 3]; // partial week Aug 24-27
+  if (key === CURRENT_WEEK_KEY) return [0, 1, 2]; // Mon-Wed logged (today = Wed Sep 30)
+  if (key === LAST_FULL_WEEK_KEY) return [0, 1, 2, 3]; // partial week Sep 21-24
   return [0, 1, 2, 3, 4];
 }
 
@@ -1372,7 +1372,7 @@ export type MonthStat = {
   marginPct: number;
 };
 
-const monthKeys = ["2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08"];
+const monthKeys = ["2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"];
 const monthLabel = (key: string) => `${MONTH_ABBR[Number(key.slice(5)) - 1] ?? ""} 2026`;
 
 export const monthlyStats: MonthStat[] = monthKeys.map((key) => {
