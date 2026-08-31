@@ -19,16 +19,16 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/tasks")({
   head: () => ({
     meta: [
-      { title: "Tâches — Focus Replica" },
+      { title: "Tasks — Focus Replica" },
       {
         name: "description",
         content:
-          "Liste des tâches par projet avec dates, estimation, priorité, étiquette, assigné et statut.",
+          "Task list by project with dates, estimate, priority, tag, assignee and status.",
       },
-      { property: "og:title", content: "Tâches — Focus Replica" },
+      { property: "og:title", content: "Tasks — Focus Replica" },
       {
         property: "og:description",
-        content: "Toutes les tâches du workspace avec priorité et statut.",
+        content: "All workspace tasks with priority and status.",
       },
     ],
   }),
@@ -40,36 +40,36 @@ function TasksScreen() {
     <div className="pb-12">
       <div className="flex items-center gap-3 px-7 pb-3 pt-5">
         <h1 className="text-2xl font-semibold tracking-tight">
-          Tâches <span className="text-muted-foreground">· Liste</span>
+          Tasks <span className="text-muted-foreground">· List</span>
         </h1>
         <PrimaryButton className="ml-auto">
           <Plus className="size-4" />
-          Ajouter une tâche
+          Add task
         </PrimaryButton>
       </div>
 
       <div className="flex flex-wrap items-center gap-2 px-7 py-3">
         <button className="pill">
           <CalendarDays className="size-3.5 text-muted-foreground" />
-          Aujourd'hui
+          Today
           <ChevronDown className="size-3.5 text-muted-foreground" />
         </button>
         <button className="pill">
           <Filter className="size-3.5 text-muted-foreground" />
-          Filtres
+          Filters
           <span className="grad-accent rounded-full px-1.5 text-[10px] font-semibold text-primary-foreground">
             2
           </span>
         </button>
         <button className="pill">
           <Group className="size-3.5 text-muted-foreground" />
-          Grouper par : <span className="text-accent-pink">Projet</span>
+          Group by: <span className="text-accent-pink">Project</span>
         </button>
         <button className="pill">
           <ArrowUpDown className="size-3.5 text-muted-foreground" />
-          Trier par : <span className="text-accent-pink">Priorité</span>
+          Sort by: <span className="text-accent-pink">Priority</span>
         </button>
-        <button className="pill">Réinitialiser</button>
+        <button className="pill">Reset</button>
         <div className="ml-auto flex items-center gap-2">
           <div className="flex items-center gap-1 rounded-full border border-border bg-surface-2 p-1">
             <span className="grad-accent flex size-7 items-center justify-center rounded-full">
@@ -88,14 +88,14 @@ function TasksScreen() {
       <table className="w-full text-sm">
         <thead>
           <tr className="border-y border-border">
-            <th className="label-caps px-7 py-2.5 text-left">Tâche</th>
-            <th className="label-caps px-5 py-2.5 text-left">Projet</th>
+            <th className="label-caps px-7 py-2.5 text-left">Task</th>
+            <th className="label-caps px-5 py-2.5 text-left">Project</th>
             <th className="label-caps px-5 py-2.5 text-left">Dates</th>
-            <th className="label-caps px-5 py-2.5 text-right">Estimation</th>
-            <th className="label-caps px-5 py-2.5 text-left">Priorité</th>
-            <th className="label-caps px-5 py-2.5 text-left">Étiquette</th>
-            <th className="label-caps px-5 py-2.5 text-left">Assigné</th>
-            <th className="label-caps px-5 py-2.5 text-left">Statut</th>
+            <th className="label-caps px-5 py-2.5 text-right">Estimate</th>
+            <th className="label-caps px-5 py-2.5 text-left">Priority</th>
+            <th className="label-caps px-5 py-2.5 text-left">Tag</th>
+            <th className="label-caps px-5 py-2.5 text-left">Assignee</th>
+            <th className="label-caps px-5 py-2.5 text-left">Status</th>
             <th className="label-caps px-5 py-2.5 text-center">Billable</th>
           </tr>
         </thead>
@@ -171,7 +171,7 @@ function TasksScreen() {
 
       <button className="label-caps flex items-center gap-2 px-7 py-4 transition-colors hover:text-foreground">
         <Plus className="size-3.5" />
-        Ajouter une tâche
+        Add task
       </button>
     </div>
   );

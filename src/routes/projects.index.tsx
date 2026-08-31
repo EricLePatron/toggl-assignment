@@ -16,16 +16,16 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/projects/")({
   head: () => ({
     meta: [
-      { title: "Projets — Focus Replica" },
+      { title: "Projects — Focus Replica" },
       {
         name: "description",
         content:
-          "Liste des projets actifs avec client, taux, dates et état du temps enregistré.",
+          "Active project list with client, rate, dates and tracked time status.",
       },
-      { property: "og:title", content: "Projets — Focus Replica" },
+      { property: "og:title", content: "Projects — Focus Replica" },
       {
         property: "og:description",
-        content: "Liste des projets actifs et de leur état de temps.",
+        content: "Active projects and their time status.",
       },
     ],
   }),
@@ -36,33 +36,33 @@ function ProjectsScreen() {
   return (
     <div className="pb-12">
       <div className="flex items-center gap-3 px-7 pb-3 pt-5">
-        <h1 className="text-2xl font-semibold tracking-tight">Projets</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Projects</h1>
         <PrimaryButton className="ml-auto">
           <Plus className="size-4" />
-          Nouveau projet
+          New project
         </PrimaryButton>
       </div>
 
       <div className="flex flex-wrap items-center gap-2 px-7 py-3">
         <button className="pill">
-          Actif
+          Active
           <ChevronDown className="size-3.5 text-muted-foreground" />
         </button>
         <button className="pill">
           <Filter className="size-3.5 text-muted-foreground" />
-          Filtres
+          Filters
         </button>
         <button className="pill">
           <Group className="size-3.5 text-muted-foreground" />
-          Grouper par
+          Group by
         </button>
         <button className="pill">
           <ArrowUpDown className="size-3.5 text-muted-foreground" />
-          Trier par
+          Sort by
         </button>
         <button className="pill">
           <Plus className="size-3.5" />
-          Filtrer
+          Filter
         </button>
         <div className="ml-auto flex items-center gap-3 text-muted-foreground">
           <Search className="size-4" />
@@ -73,13 +73,13 @@ function ProjectsScreen() {
       <table className="w-full text-sm">
         <thead>
           <tr className="border-y border-border">
-            <th className="label-caps px-7 py-2.5 text-left">Projet</th>
+            <th className="label-caps px-7 py-2.5 text-left">Project</th>
             <th className="label-caps px-5 py-2.5 text-left">Client</th>
-            <th className="label-caps px-5 py-2.5 text-center">Facturable</th>
-            <th className="label-caps px-5 py-2.5 text-right">Taux</th>
+            <th className="label-caps px-5 py-2.5 text-center">Billable</th>
+            <th className="label-caps px-5 py-2.5 text-right">Rate</th>
             <th className="label-caps px-5 py-2.5 text-left">Dates</th>
-            <th className="label-caps px-5 py-2.5 text-left">État du temps</th>
-            <th className="label-caps px-5 py-2.5 text-right">Entrées</th>
+            <th className="label-caps px-5 py-2.5 text-left">Time status</th>
+            <th className="label-caps px-5 py-2.5 text-right">Entries</th>
           </tr>
         </thead>
         <tbody>
@@ -87,7 +87,7 @@ function ProjectsScreen() {
             <tr key={p.id} className="border-b border-border/60 hover:bg-surface/60">
               <td className="px-7 py-3.5">
                 <Link
-                  to="/projets/$projectId"
+                  to="/projects/$projectId"
                   params={{ projectId: p.id }}
                   className="inline-flex items-center gap-2 font-medium hover:underline"
                 >
@@ -106,7 +106,7 @@ function ProjectsScreen() {
                 )}
               </td>
               <td className="tnum px-5 py-3.5 text-right">
-                {p.rate ? `${p.rate} USD` : <span className="text-subtle">Aucun</span>}
+                {p.rate ? `${p.rate} USD` : <span className="text-subtle">None</span>}
               </td>
               <td className="px-5 py-3.5 text-muted-foreground">{p.dates}</td>
               <td className="px-5 py-3.5">
@@ -128,7 +128,7 @@ function ProjectsScreen() {
 
       <button className="label-caps flex items-center gap-2 px-7 py-4 transition-colors hover:text-foreground">
         <Plus className="size-3.5" />
-        Ajouter un projet
+        Add project
       </button>
     </div>
   );

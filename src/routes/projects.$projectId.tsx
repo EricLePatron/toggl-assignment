@@ -16,38 +16,38 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/projects/$projectId")({
   head: () => ({
     meta: [
-      { title: "Détail du projet — Focus Replica" },
+      { title: "Project detail — Focus Replica" },
       {
         name: "description",
         content:
-          "Aperçu d'un projet : tâches, tableau kanban, chronologie, tableau de bord et membres.",
+          "Project overview: tasks, kanban board, timeline, dashboard and members.",
       },
-      { property: "og:title", content: "Détail du projet — Focus Replica" },
+      { property: "og:title", content: "Project detail — Focus Replica" },
       {
         property: "og:description",
-        content: "Aperçu, tâches et tableau de bord d'un projet.",
+        content: "Overview, tasks and dashboard of a project.",
       },
     ],
   }),
   component: ProjectDetail,
 });
 
-const TABS = ["Aperçu", "Tâches", "Tableau", "Chronologie", "Tableau de bord", "Membres"];
+const TABS = ["Overview", "Tasks", "Board", "Timeline", "Dashboard", "Members"];
 const COLUMNS: TaskStatus[] = ["Todo", "In Progress", "Blocked", "Done"];
 
 function ProjectDetail() {
   const { projectId } = Route.useParams();
-  const [tab, setTab] = useState<string>("Aperçu");
+  const [tab, setTab] = useState<string>("Overview");
   const project = projectById(projectId);
 
   if (!project) {
     return (
       <EmptyState
-        title="Projet introuvable"
-        description="Ce projet n'existe pas dans le jeu de données de démonstration."
+        title="Project not found"
+        description="This project does not exist in the demo dataset."
         action={
-          <Link to="/projets" className="pill">
-            Retour aux projets
+          <Link to="/projects" className="pill">
+            Back to projects
           </Link>
         }
       />
@@ -59,7 +59,7 @@ function ProjectDetail() {
   return (
     <div className="pb-12">
       <div className="flex items-center gap-3 px-7 pb-3 pt-5">
-        <Link to="/projets" className="text-muted-foreground hover:text-foreground">
+        <Link to="/projects" className="text-muted-foreground hover:text-foreground">
           <ChevronLeft className="size-5" />
         </Link>
         <Folder className={cn("size-5", projectTextClass[project.color])} />
@@ -73,23 +73,23 @@ function ProjectDetail() {
       <Tabs tabs={TABS} value={tab} onChange={setTab} />
 
       <div className="space-y-5 px-7 pt-5">
-        {tab === "Aperçu" && (
+        {tab === "Overview" && (
           <>
             <div className="panel flex divide-x divide-border">
-              <Stat label="Temps enregistré" value={formatH(project.tracked)} />
-              <Stat label="Facturable" value={formatH(project.billable)} />
-              <Stat label="Entrées" value={String(project.entries)} />
+              <Stat label="Tracked time" value={formatH(project.tracked)} />
+              <Stat label="Billable" value={formatH(project.billable)} />
+              <Stat label="Entries" value={String(project.entries)} />
               <Stat
-                label="Taux"
+                label="Rate"
                 value={project.rate ? `${project.rate} USD` : "—"}
-                hint={project.client ? `Client : ${project.client}` : "Sans client"}
+                hint={project.client ? `Client: ${project.client}` : "No client"}
               />
             </div>
 
             <Card>
-              <h2 className="pb-4 text-base font-semibold">Paramètres du projet</h2>
+              <h2 className="pb-4 text-base font-semibold">Project settings</h2>
               <div className="grid grid-cols-2 gap-4">
-                {["Récurrent", "Estimation", "Facturable", "Frais fixes"].map((label) => (
+                {["Recurring", "Estimate", "Billable", "Fixed fee"].map((label) => (
                   <div
                     key={label}
                     className="flex items-center gap-3 rounded-xl border border-border bg-surface-2/60 px-4 py-3 opacity-60"
@@ -109,9 +109,9 @@ function ProjectDetail() {
           </>
         )}
 
-        {tab === "Tâches" && <TaskTable rows={projectTasks} />}
+        {tab === "Tasks" && <TaskTable rows={projectTasks} />}
 
-        {tab === "Tableau" && (
+        {tab === "Board" && (
           <div className="grid grid-cols-4 gap-4">
             {COLUMNS.map((col) => (
               <div key={col} className="panel flex flex-col p-3">
@@ -139,7 +139,7 @@ function ProjectDetail() {
                   ))}
                   <button className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs text-subtle transition-colors hover:text-foreground">
                     <Plus className="size-3.5" />
-                    Ajouter une tâche
+                    Add task
                   </button>
                 </div>
               </div>
@@ -147,28 +147,28 @@ function ProjectDetail() {
           </div>
         )}
 
-        {tab === "Chronologie" && <ProjectGantt tasks={projectTasks} />}
+        {tab === "Timeline" && <ProjectGantt tasks={projectTasks} />}
 
-        {tab === "Tableau de bord" && (
+        {tab === "Dashboard" && (
           <div className="panel flex divide-x divide-border">
             <Stat
-              label="Revenu"
+              label="Revenue"
               value={project.rate ? `${(project.rate * project.billable).toFixed(2)} USD` : "—"}
             />
-            <Stat label="Coût" value="—" hint="taux de coût manquant" />
+            <Stat label="Cost" value="—" hint="missing cost rate" />
             <Stat label="Profit" value="—" />
-            <Stat label="Marge" value="— %" hint="cible 40 %" />
+            <Stat label="Margin" value="— %" hint="40 % target" />
           </div>
         )}
 
-        {tab === "Membres" && (
+        {tab === "Members" && (
           <Card className="p-0">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border">
-                  <th className="label-caps px-5 py-2.5 text-left">Membre</th>
-                  <th className="label-caps px-5 py-2.5 text-left">Rôle</th>
-                  <th className="label-caps px-5 py-2.5 text-right">Taux</th>
+                  <th className="label-caps px-5 py-2.5 text-left">Member</th>
+                  <th className="label-caps px-5 py-2.5 text-left">Role</th>
+                  <th className="label-caps px-5 py-2.5 text-right">Rate</th>
                 </tr>
               </thead>
               <tbody>
@@ -181,7 +181,7 @@ function ProjectDetail() {
                       {currentUser.name}
                     </span>
                   </td>
-                  <td className="px-5 py-3 text-muted-foreground">Gestionnaire de projet</td>
+                  <td className="px-5 py-3 text-muted-foreground">Project manager</td>
                   <td className="tnum px-5 py-3 text-right">
                     {project.rate ? `${project.rate} USD` : "—"}
                   </td>
@@ -201,11 +201,11 @@ function TaskTable({ rows }: { rows: typeof tasks }) {
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-border">
-            <th className="label-caps px-5 py-2.5 text-left">Tâche</th>
+            <th className="label-caps px-5 py-2.5 text-left">Task</th>
             <th className="label-caps px-5 py-2.5 text-left">Dates</th>
-            <th className="label-caps px-5 py-2.5 text-right">Estimation</th>
-            <th className="label-caps px-5 py-2.5 text-left">Priorité</th>
-            <th className="label-caps px-5 py-2.5 text-left">Statut</th>
+            <th className="label-caps px-5 py-2.5 text-right">Estimate</th>
+            <th className="label-caps px-5 py-2.5 text-left">Priority</th>
+            <th className="label-caps px-5 py-2.5 text-left">Status</th>
           </tr>
         </thead>
         <tbody>
@@ -230,9 +230,9 @@ function ProjectGantt({ tasks: rows }: { tasks: typeof tasks }) {
   return (
     <Card className="p-0">
       <div className="grid grid-cols-[240px_1fr] border-b border-border">
-        <div className="label-caps px-5 py-2.5">Tâche</div>
+        <div className="label-caps px-5 py-2.5">Task</div>
         <div className="grid grid-cols-7">
-          {["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"].map((d) => (
+          {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
             <div key={d} className="label-caps border-l border-border px-3 py-2.5">
               {d}
             </div>
