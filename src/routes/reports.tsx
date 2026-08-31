@@ -59,7 +59,7 @@ const TABS = [
 
 function ReportsScreen() {
   const [tab, setTab] = useState<string>("Summary");
-  const [weekOffset, setWeekOffset] = useState(0);
+  const [weekOffset, setWeekOffset] = useState(DEFAULT_WEEK_OFFSET);
   const week = weekView(weekOffset);
 
   return (
