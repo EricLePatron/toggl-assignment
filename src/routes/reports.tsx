@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import {
   profitability,
-  projects,
   weekView,
   WEEK_OFFSET_MAX,
   WEEK_OFFSET_MIN,
