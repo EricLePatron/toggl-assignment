@@ -6,7 +6,7 @@
  * entries. Every figure displayed in the app derives from `timeEntries`,
  * so no two screens can contradict each other.
  *
- * Window: March 1 2026 → August 31 2026 ("today" = Monday August 31 2026).
+ * Window: March 1 2026 → September 30 2026 ("today" = Wednesday September 30 2026).
  */
 
 /* ------------------------------------------------------------------ */
@@ -67,10 +67,10 @@ const rand = mulberry32(20260831);
 const jitter = (base: number, pct: number) => base * (1 + (rand() * 2 - 1) * pct);
 const q = (h: number) => Math.round(h * 4) / 4;
 
-export const TODAY = d(2026, 8, 31);
+export const TODAY = d(2026, 9, 30);
 export const WINDOW_START = d(2026, 3, 1);
-export const WINDOW_END = d(2026, 8, 31);
-export const CURRENT_WEEK_START = mondayOf(TODAY); // Mon Aug 31 2026
+export const WINDOW_END = d(2026, 9, 30);
+export const CURRENT_WEEK_START = mondayOf(TODAY); // Mon Sep 28 2026
 
 /* ------------------------------------------------------------------ */
 /* Workspace, members                                                  */
@@ -186,7 +186,7 @@ const projectSeeds: ProjectSeed[] = [
     rate: 95,
     rateEffectiveFrom: d(2026, 3, 2),
     start: d(2026, 3, 2),
-    end: d(2026, 8, 31),
+    end: d(2026, 9, 30),
     status: "Active",
   },
   {
@@ -199,7 +199,7 @@ const projectSeeds: ProjectSeed[] = [
     // Rate only configured in June, two months after the project actually started.
     rateEffectiveFrom: d(2026, 6, 1),
     start: d(2026, 4, 6),
-    end: d(2026, 8, 31),
+    end: d(2026, 9, 30),
     status: "Active",
   },
   {
@@ -223,7 +223,7 @@ const projectSeeds: ProjectSeed[] = [
     rate: null,
     rateEffectiveFrom: null,
     start: d(2026, 3, 2),
-    end: d(2026, 8, 31),
+    end: d(2026, 9, 30),
     status: "Active",
   },
 ];
@@ -366,8 +366,8 @@ const taskSeeds: TaskSeed[] = [
     assignee: "ao",
     estimate: 10,
     factor: 1.45,
-    start: d(2026, 8, 24),
-    end: d(2026, 9, 3), // due in 3 days, already over estimate
+    start: d(2026, 9, 21),
+    end: d(2026, 10, 3), // due in 3 days, already over estimate
     priority: "High",
     tag: INTEGRATION_TAG,
     status: "In Progress",
@@ -735,7 +735,7 @@ const taskSeeds: TaskSeed[] = [
     estimate: 0,
     factor: 1,
     start: d(2026, 3, 2),
-    end: d(2026, 8, 31),
+    end: d(2026, 9, 30),
     priority: "Medium",
     tag: "Design QA",
     status: "In Progress",
@@ -751,7 +751,7 @@ const taskSeeds: TaskSeed[] = [
     estimate: 0,
     factor: 1,
     start: d(2026, 6, 1),
-    end: d(2026, 8, 31),
+    end: d(2026, 9, 30),
     priority: "Medium",
     tag: "Design QA",
     status: "In Progress",
@@ -767,7 +767,7 @@ const taskSeeds: TaskSeed[] = [
     estimate: 0,
     factor: 1,
     start: d(2026, 3, 2),
-    end: d(2026, 8, 31),
+    end: d(2026, 9, 30),
     priority: "Medium",
     tag: "Engineering",
     status: "In Progress",
@@ -783,7 +783,7 @@ const taskSeeds: TaskSeed[] = [
     estimate: 0,
     factor: 1,
     start: d(2026, 6, 1),
-    end: d(2026, 8, 31),
+    end: d(2026, 9, 30),
     priority: "Medium",
     tag: "Engineering",
     status: "In Progress",
@@ -799,7 +799,7 @@ const taskSeeds: TaskSeed[] = [
     estimate: 0,
     factor: 1,
     start: d(2026, 3, 2),
-    end: d(2026, 8, 31),
+    end: d(2026, 9, 30),
     priority: "Medium",
     tag: "Client",
     status: "In Progress",
@@ -815,7 +815,7 @@ const taskSeeds: TaskSeed[] = [
     estimate: 0,
     factor: 1,
     start: d(2026, 6, 1),
-    end: d(2026, 8, 31),
+    end: d(2026, 9, 30),
     priority: "Medium",
     tag: "Client",
     status: "In Progress",
@@ -831,7 +831,7 @@ const taskSeeds: TaskSeed[] = [
     estimate: 0,
     factor: 1,
     start: d(2026, 3, 2),
-    end: d(2026, 8, 31),
+    end: d(2026, 9, 30),
     priority: "Medium",
     tag: "Internal",
     status: "In Progress",
@@ -847,7 +847,7 @@ const taskSeeds: TaskSeed[] = [
     estimate: 0,
     factor: 1,
     start: d(2026, 3, 2),
-    end: d(2026, 8, 31),
+    end: d(2026, 9, 30),
     priority: "Low",
     tag: "Internal",
     status: "In Progress",
@@ -863,7 +863,7 @@ const taskSeeds: TaskSeed[] = [
     estimate: 0,
     factor: 1,
     start: d(2026, 3, 2),
-    end: d(2026, 8, 31),
+    end: d(2026, 9, 30),
     priority: "Low",
     tag: "Internal",
     status: "In Progress",
@@ -909,8 +909,8 @@ const LAST_FULL_WEEK_KEY = iso(addDays(CURRENT_WEEK_START, -7)); // Aug 24
 /** Working days available in a given week (Mon..Fri offsets). */
 function weekdaysOf(weekStart: Date): number[] {
   const key = iso(weekStart);
-  if (key === CURRENT_WEEK_KEY) return [0]; // only Monday Aug 31 logged so far
-  if (key === LAST_FULL_WEEK_KEY) return [0, 1, 2, 3]; // partial week Aug 24-27
+  if (key === CURRENT_WEEK_KEY) return [0, 1, 2]; // Mon-Wed logged (today = Wed Sep 30)
+  if (key === LAST_FULL_WEEK_KEY) return [0, 1, 2, 3]; // partial week Sep 21-24
   return [0, 1, 2, 3, 4];
 }
 
@@ -923,6 +923,7 @@ const ratioByMonth: Record<string, Record<string, number>> = {
     "2026-06": 0.9,
     "2026-07": 0.65,
     "2026-08": 0.95,
+    "2026-09": 0.8,
   },
   tn: {
     "2026-03": 1.26,
@@ -931,6 +932,7 @@ const ratioByMonth: Record<string, Record<string, number>> = {
     "2026-06": 1.33,
     "2026-07": 1.1,
     "2026-08": 1.48,
+    "2026-09": 1.22,
   },
   ao: {
     "2026-03": 1.16,
@@ -939,6 +941,7 @@ const ratioByMonth: Record<string, Record<string, number>> = {
     "2026-06": 1.15,
     "2026-07": 1.02,
     "2026-08": 1.2,
+    "2026-09": 1.06,
   },
 };
 
@@ -950,6 +953,7 @@ const internalBumpByMonth: Record<string, number> = {
   "2026-06": 1.35,
   "2026-07": 1.65,
   "2026-08": 1.75,
+  "2026-09": 1.6,
 };
 
 /** Non-billable, untagged "general / misc" time — small but real and growing. */
@@ -960,6 +964,7 @@ const miscByMonth: Record<string, number> = {
   "2026-06": 0.85,
   "2026-07": 1.0,
   "2026-08": 1.15,
+  "2026-09": 1.25,
 };
 
 const miscDescriptions = [
@@ -1372,7 +1377,7 @@ export type MonthStat = {
   marginPct: number;
 };
 
-const monthKeys = ["2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08"];
+const monthKeys = ["2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"];
 const monthLabel = (key: string) => `${MONTH_ABBR[Number(key.slice(5)) - 1] ?? ""} 2026`;
 
 export const monthlyStats: MonthStat[] = monthKeys.map((key) => {
