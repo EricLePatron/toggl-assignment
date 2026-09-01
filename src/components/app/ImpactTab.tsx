@@ -2,7 +2,10 @@ import { useState } from "react";
 import {
   AlertTriangle,
   CalendarClock,
+  CalendarDays,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   Circle,
   Clock3,
   FolderKanban,
@@ -347,9 +350,14 @@ function formatPlannedDates(dates: string[]) {
 }
 
 function CapacityCard({ week }: { week: WeekView }) {
+  const [customSlot, setCustomSlot] = useState<{ date: string; start: number } | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const signal = capacitySignal(week);
   if (!signal || !signal.candidate || !signal.canMove) return null;
   const c = signal.candidate;
+
+  const targetDate = customSlot?.date ?? c.proposedDate;
+  const targetStart = customSlot?.start ?? c.proposedStart;
 
   const currentBlock = plannedEntries.find(
     (e) => e.taskId === c.taskId && e.date >= week.from && e.date <= week.to,
@@ -473,13 +481,26 @@ function CapacityCard({ week }: { week: WeekView }) {
           <MiniWeek
             label="Next week"
             dates={Array.from({ length: 7 }, (_, i) => addDaysIso(week.from, 7 + i))}
-            activeDates={[c.proposedDate]}
+            activeDates={[targetDate]}
             chipName={c.taskName}
             chipColor={c.projectColor}
-            chipTime={fmtTime(c.proposedStart)}
+            chipTime={fmtTime(targetStart)}
             highlight
           />
         </div>
+
+        {pickerOpen && (
+          <MoveDatePicker
+            initialDate={targetDate}
+            initialStart={targetStart}
+            onCancel={() => setPickerOpen(false)}
+            onSave={(date, start) => {
+              moveTaskToNextWeek(c.taskId, date, start);
+              setPickerOpen(false);
+              setCustomSlot(null);
+            }}
+          />
+        )}
 
         <div className="flex items-center justify-between gap-4 pt-3">
           <p className="tnum text-xs text-muted-foreground">
@@ -489,18 +510,25 @@ function CapacityCard({ week }: { week: WeekView }) {
             </span>{" "}
             · next week{" "}
             <span className="font-medium text-foreground">
-              {formatHours(signal.nextWeekAfterMove)}
+              {formatHours(signal.nextWeekTotal + c.hours)}
             </span>{" "}
             — both within {formatHours(signal.capacity)}.
           </p>
-          <button
-            className="pill shrink-0 border-info/50 text-foreground"
-            onClick={() =>
-              moveTaskToNextWeek(c.taskId, c.proposedDate, c.proposedStart)
-            }
-          >
-            Move to {slotLabel(c.proposedDate, c.proposedStart)}
-          </button>
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              className={cn("pill text-muted-foreground", pickerOpen && "border-info/50 text-foreground")}
+              onClick={() => setPickerOpen((v) => !v)}
+            >
+              <CalendarDays className="size-3.5" />
+              Pick another date…
+            </button>
+            <button
+              className="pill border-info/50 text-foreground"
+              onClick={() => moveTaskToNextWeek(c.taskId, targetDate, targetStart)}
+            >
+              Move to {slotLabel(targetDate, targetStart)}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -545,13 +573,173 @@ const addDaysIso = (iso: string, days: number) => {
 
 function fmtTime(h: number) {
   const suffix = h < 12 ? "AM" : "PM";
-  const base = h % 12 === 0 ? 12 : h % 12;
-  return `${base}:00 ${suffix}`;
+  const base = Math.floor(h) % 12 === 0 ? 12 : Math.floor(h) % 12;
+  const min = Math.round((h - Math.floor(h)) * 60);
+  return `${base}:${String(min).padStart(2, "0")} ${suffix}`;
 }
 
 function slotLabel(dateIso: string, start: number) {
   const d = new Date(`${dateIso}T00:00:00Z`);
   return `${DAY_SHORT[d.getUTCDay()]} ${MONTH_SHORT[d.getUTCMonth()]} ${d.getUTCDate()} · ${fmtTime(start)}`;
+}
+
+const MONTH_FULL = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+const CAL_DOW = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+/**
+ * Toggl-style reschedule picker: month calendar + start time + Save.
+ * Mirrors the production date picker (dark panel, gradient-selected day).
+ */
+function MoveDatePicker({
+  initialDate,
+  initialStart,
+  onSave,
+  onCancel,
+}: {
+  initialDate: string;
+  initialStart: number;
+  onSave: (date: string, start: number) => void;
+  onCancel: () => void;
+}) {
+  const init = new Date(`${initialDate}T00:00:00Z`);
+  const [month, setMonth] = useState(
+    () => new Date(Date.UTC(init.getUTCFullYear(), init.getUTCMonth(), 1)),
+  );
+  const [selected, setSelected] = useState(initialDate);
+  const [hour, setHour] = useState(initialStart % 12 === 0 ? 12 : initialStart % 12);
+  const [minute, setMinute] = useState(0);
+  const [ampm, setAmpm] = useState<"AM" | "PM">(initialStart < 12 ? "AM" : "PM");
+
+  const year = month.getUTCFullYear();
+  const monthIdx = month.getUTCMonth();
+  const firstDow = new Date(Date.UTC(year, monthIdx, 1)).getUTCDay(); // 0 = Sun
+  const daysInMonth = new Date(Date.UTC(year, monthIdx + 1, 0)).getUTCDate();
+  const daysInPrev = new Date(Date.UTC(year, monthIdx, 0)).getUTCDate();
+
+  const cells: { iso: string; day: number; inMonth: boolean }[] = [];
+  for (let i = 0; i < firstDow; i++) {
+    const day = daysInPrev - firstDow + 1 + i;
+    const d = new Date(Date.UTC(year, monthIdx - 1, day));
+    cells.push({ iso: d.toISOString().slice(0, 10), day, inMonth: false });
+  }
+  for (let day = 1; day <= daysInMonth; day++) {
+    const d = new Date(Date.UTC(year, monthIdx, day));
+    cells.push({ iso: d.toISOString().slice(0, 10), day, inMonth: true });
+  }
+  const trailing = (7 - (cells.length % 7)) % 7;
+  for (let i = 1; i <= trailing; i++) {
+    const d = new Date(Date.UTC(year, monthIdx + 1, i));
+    cells.push({ iso: d.toISOString().slice(0, 10), day: i, inMonth: false });
+  }
+
+  const start24 = ampm === "PM" ? (hour % 12) + 12 : hour % 12;
+  const startDecimal = start24 + minute / 60;
+  const selDate = new Date(`${selected}T00:00:00Z`);
+  const datePill = `${DAY_SHORT[selDate.getUTCDay()]}, ${MONTH_SHORT[selDate.getUTCMonth()]} ${selDate.getUTCDate()}`;
+
+  return (
+    <div className="mt-3 w-72 rounded-xl border border-border bg-popover p-4 shadow-xl shadow-black/40">
+      {/* Month header */}
+      <div className="flex items-center justify-between pb-3">
+        <button
+          aria-label="Previous month"
+          className="flex size-8 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
+          onClick={() => setMonth(new Date(Date.UTC(year, monthIdx - 1, 1)))}
+        >
+          <ChevronLeft className="size-4" />
+        </button>
+        <span className="text-sm font-semibold">
+          {MONTH_FULL[monthIdx]} {year}
+        </span>
+        <button
+          aria-label="Next month"
+          className="flex size-8 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
+          onClick={() => setMonth(new Date(Date.UTC(year, monthIdx + 1, 1)))}
+        >
+          <ChevronRight className="size-4" />
+        </button>
+      </div>
+
+      {/* Day-of-week labels */}
+      <div className="grid grid-cols-7 pb-1">
+        {CAL_DOW.map((d) => (
+          <div key={d} className="py-1 text-center text-xs font-medium text-muted-foreground">
+            {d}
+          </div>
+        ))}
+      </div>
+
+      {/* Day grid */}
+      <div className="grid grid-cols-7 gap-y-0.5">
+        {cells.map((cell) => (
+          <button
+            key={cell.iso}
+            onClick={() => setSelected(cell.iso)}
+            className={cn(
+              "tnum mx-auto flex size-9 items-center justify-center rounded-lg text-sm transition-colors",
+              cell.iso === selected
+                ? "bg-accent font-semibold text-accent-foreground"
+                : cell.inMonth
+                  ? "text-foreground hover:bg-surface-2"
+                  : "text-subtle hover:bg-surface-2",
+            )}
+          >
+            {cell.day}
+          </button>
+        ))}
+      </div>
+
+      {/* Selected date + time */}
+      <div className="flex items-center gap-2 pt-4">
+        <span className="tnum rounded-lg border border-border bg-surface-2 px-2.5 py-1.5 text-xs font-medium">
+          {datePill}
+        </span>
+        <div className="flex items-center rounded-lg border border-border bg-surface-2 px-2 py-1">
+          <input
+            value={hour}
+            onChange={(e) => {
+              const v = Math.max(1, Math.min(12, Number(e.target.value.replace(/\D/g, "")) || 1));
+              setHour(v);
+            }}
+            aria-label="Start hour"
+            className="tnum w-6 bg-transparent text-right text-xs outline-none"
+          />
+          <span className="px-0.5 text-xs text-muted-foreground">:</span>
+          <input
+            value={String(minute).padStart(2, "0")}
+            onChange={(e) => {
+              const v = Math.max(0, Math.min(59, Number(e.target.value.replace(/\D/g, "")) || 0));
+              setMinute(v);
+            }}
+            aria-label="Start minute"
+            className="tnum w-6 bg-transparent text-xs outline-none"
+          />
+          <button
+            onClick={() => setAmpm((v) => (v === "AM" ? "PM" : "AM"))}
+            className="ml-1 rounded px-1.5 py-0.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-surface hover:text-foreground"
+          >
+            {ampm}
+          </button>
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="flex items-center justify-end gap-2 pt-4">
+        <button className="pill text-muted-foreground" onClick={onCancel}>
+          Cancel
+        </button>
+        <button
+          className="grad-accent inline-flex items-center gap-1.5 rounded-lg px-4 py-1.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+          onClick={() => onSave(selected, startDecimal)}
+        >
+          Save
+        </button>
+      </div>
+    </div>
+  );
 }
 
 function MiniWeek({
