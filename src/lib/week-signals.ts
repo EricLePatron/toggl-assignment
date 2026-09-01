@@ -21,6 +21,10 @@ import {
 /* ---------------- estimate overrides (client-side, in-memory) ------------- */
 
 const overrides = new Map<string, number>();
+const completedEstimateUpdates = new Map<
+  string,
+  { from: number | null; to: number }
+>();
 const listeners = new Set<() => void>();
 let version = 0;
 
@@ -29,17 +33,52 @@ let version = 0;
  * page reload. The task object itself is patched so every screen (Tasks,
  * Project detail, Calendar) shows the new value.
  */
-export function setTaskEstimate(taskId: string, hours: number) {
-  overrides.set(taskId, hours);
+export function setTaskEstimate(
+  taskId: string,
+  hours: number,
+  options?: { syncPlannedDuration?: boolean; freezeConfirmation?: boolean },
+) {
   const task = taskById(taskId);
+  const previous = taskEstimate(taskId, task?.estimateHours ?? null);
+  overrides.set(taskId, hours);
   if (task) {
     task.estimateHours = hours;
     task.estimate = formatHours(hours);
     task.delta = Math.round((task.tracked - hours) * 4) / 4;
     task.ratio = task.tracked / hours;
+    if (options?.syncPlannedDuration) task.plannedHours = hours;
+  }
+  if (options?.syncPlannedDuration) {
+    const blocks = plannedEntries.filter((entry) => entry.taskId === taskId);
+    const originalTotal = blocks.reduce((sum, entry) => sum + entry.duration, 0);
+    if (blocks.length === 1) {
+      const block = blocks[0];
+      if (block) {
+        block.duration = hours;
+        block.end = block.start + hours;
+      }
+    } else if (blocks.length > 1 && originalTotal > 0) {
+      let remaining = hours;
+      blocks.forEach((block, index) => {
+        const duration =
+          index === blocks.length - 1
+            ? remaining
+            : Math.round(((hours * block.duration) / originalTotal) * 4) / 4;
+        block.duration = duration;
+        block.end = block.start + duration;
+        remaining -= duration;
+      });
+    }
+  }
+  if (options?.freezeConfirmation) {
+    completedEstimateUpdates.set(taskId, { from: previous, to: hours });
   }
   version++;
   listeners.forEach((l) => l());
+}
+
+export function completedEstimateUpdate(taskId: string) {
+  return completedEstimateUpdates.get(taskId) ?? null;
 }
 
 function subscribe(l: () => void) {
@@ -57,7 +96,7 @@ export function useEstimateOverrides() {
 }
 
 export function taskEstimate(taskId: string, base: number | null): number | null {
-  return overrides.has(taskId) ? overrides.get(taskId)! : base;
+  return overrides.get(taskId) ?? base;
 }
 
 /* ---------------- signals ------------------------------------------------- */
