@@ -331,11 +331,30 @@ function OverrunRow({ row }: { row: ReturnType<typeof overrunTasks>[number] }) {
   );
 }
 
+const MONTH_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const DAY_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+function formatPlannedDates(dates: string[]) {
+  if (dates.length === 0) return "Not scheduled";
+  const sorted = [...dates].sort();
+  const first = new Date(`${sorted[0]}T00:00:00Z`);
+  const last = new Date(`${sorted[sorted.length - 1]}T00:00:00Z`);
+  const fmt = (d: Date) => `${DAY_SHORT[d.getUTCDay()]} ${MONTH_SHORT[d.getUTCMonth()]} ${d.getUTCDate()}`;
+  if (sorted.length === 1) return fmt(first);
+  return `${fmt(first)} – ${fmt(last)}`;
+}
+
 function CapacityCard({ week }: { week: WeekView }) {
   const signal = capacitySignal(week);
   if (!signal || !signal.candidate || !signal.canMove) return null;
   const c = signal.candidate;
-  const creepRows = scopeCreepTasks(week);
+
+  const moveReasons = [
+    { icon: Circle, text: "Status is Todo — not started yet" },
+    { icon: CalendarClock, text: "Originally planned for " + formatPlannedDates(c.plannedDates) },
+    { icon: CheckCircle2, text: `${c.priority} priority — lower than locked-in cutover work` },
+    { icon: CheckCircle2, text: "No deadline this week" },
+  ];
 
   return (
     <div
@@ -378,56 +397,81 @@ function CapacityCard({ week }: { week: WeekView }) {
         </span>
       </div>
 
-      {creepRows.length > 0 && (
-        <div className="border-y border-info/25">
-          <div className="grid grid-cols-[minmax(0,1fr)_7rem_7rem] items-center gap-4 bg-surface-2/50 px-5 py-2 text-[11px] font-semibold uppercase tracking-wide text-subtle">
-            <span>Scope creep tasks adding to the load</span>
-            <span className="text-right">Hours</span>
-            <span className="text-right">Amount</span>
+      <div className="border-y border-info/25 px-5 py-4">
+        <div className="flex items-center gap-2 pb-3">
+          <span className="inline-flex h-5 items-center rounded bg-info/15 px-2 text-[11px] font-semibold uppercase tracking-wide text-info">
+            Suggested action
+          </span>
+          <span className="text-xs text-muted-foreground">
+            Move this planned work to next week
+          </span>
+        </div>
+
+        <div className="rounded-[10px] border border-info/30 bg-surface-2/60 p-3">
+          <div className="flex items-start gap-3">
+            <Circle className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-sm font-medium text-foreground">
+                {c.taskName}
+              </div>
+              <div className="flex flex-wrap items-center gap-2 pt-2">
+                <span className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2 py-1 text-xs">
+                  <FolderKanban
+                    className={cn("size-3.5", projectColorClass[c.projectColor])}
+                  />
+                  <span className="truncate max-w-[10rem]">{c.projectName}</span>
+                </span>
+                {c.client && (
+                  <span className="inline-flex items-center rounded-lg border border-border bg-surface px-2 py-1 text-xs text-muted-foreground">
+                    {c.client}
+                  </span>
+                )}
+                <span className="tnum inline-flex items-center rounded-lg border border-info/30 bg-info/10 px-2 py-1 text-xs font-medium text-info">
+                  {formatHours(c.hours)} total
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2 py-1 text-xs">
+                  <span className="size-1.5 rounded-full bg-current" />
+                  {c.status}
+                </span>
+                {c.estimate != null && (
+                  <span className="tnum inline-flex items-center rounded-lg border border-border bg-surface px-2 py-1 text-xs text-muted-foreground">
+                    Est. {formatHours(c.estimate)}
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
-          <div className="divide-y divide-info/15">
-            {creepRows.map((r) => (
-              <div
-                key={r.taskId}
-                className="grid grid-cols-[minmax(0,1fr)_7rem_7rem] items-center gap-4 px-5 py-2.5 text-sm transition-colors hover:bg-surface-2/40"
-              >
-                <div className="min-w-0">
-                  <div className="truncate font-medium">{r.taskName}</div>
-                  <div className="truncate text-xs text-muted-foreground">
-                    {r.projectName}
-                  </div>
-                </div>
-                <div className="tnum text-right">{formatHours(r.hours)}</div>
-                <div className="tnum text-right font-medium">
-                  {r.amount != null ? money(r.amount) : "—"}
-                </div>
+
+          <div className="mt-3 grid gap-1.5 rounded-lg border border-info/20 bg-info/5 px-3 py-2.5">
+            {moveReasons.map((r, i) => (
+              <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
+                <r.icon className="size-3.5 shrink-0 text-info" />
+                <span>{r.text}</span>
               </div>
             ))}
           </div>
         </div>
-      )}
 
-      <div className="flex items-center gap-4 px-5 py-3 text-sm">
-        <div className="min-w-0 flex-1">
-          <div className="truncate font-medium">Move “{c.taskName}” to next week</div>
-          <div className="truncate text-xs text-muted-foreground">
-            {c.projectName}
-            {c.client ? ` — ${c.client}` : ""} · {formatHours(c.hours)} · not started
-            yet, no deadline this week
-          </div>
+        <div className="flex items-center justify-between gap-4 pt-3">
+          <p className="tnum text-xs text-muted-foreground">
+            After moving: this week{" "}
+            <span className="font-medium text-foreground">
+              {formatHours(signal.committed - c.hours)}
+            </span>{" "}
+            · next week{" "}
+            <span className="font-medium text-foreground">
+              {formatHours(signal.nextWeekAfterMove)}
+            </span>{" "}
+            — both within {formatHours(signal.capacity)}.
+          </p>
+          <button
+            className="pill shrink-0 border-info/50 text-foreground"
+            onClick={() => moveTaskToNextWeek(c.taskId, week.from)}
+          >
+            Move to next week
+          </button>
         </div>
-        <button
-          className="pill border-info/50 text-foreground"
-          onClick={() => moveTaskToNextWeek(c.taskId, week.from)}
-        >
-          Move to next week
-        </button>
       </div>
-      <p className="tnum px-5 pb-4 text-xs text-muted-foreground">
-        After the move: this week {formatHours(signal.committed - c.hours)}, next week{" "}
-        {formatHours(signal.nextWeekAfterMove)} — both within{" "}
-        {formatHours(signal.capacity)}.
-      </p>
     </div>
   );
 }
