@@ -615,18 +615,6 @@ export function ImpactTab({ week }: { week: WeekView }) {
   useEstimateOverrides();
   return (
     <>
-      <Card>
-        <h2 className="pb-6 text-base font-semibold">This week — logged vs planned</h2>
-        <LoggedVsPlannedChart week={week} />
-        <div className="flex items-center justify-center gap-6 pt-16 text-xs text-muted-foreground">
-          <span className="flex items-center gap-2">
-            <span className="size-2.5 rounded-[3px] bg-accent" /> Logged
-          </span>
-          <span className="flex items-center gap-2">
-            <span className="size-2.5 rounded-[3px] bg-accent-pink/50" /> Planned
-          </span>
-        </div>
-      </Card>
       <ScopeCreepCard week={week} />
       <CapacityCard week={week} />
       <OverrunCard />
