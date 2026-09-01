@@ -90,8 +90,8 @@ function ScopeCreepCard({ week }: { week: WeekView }) {
   const totalAmount = rows.reduce((s, r) => s + (r.amount ?? 0), 0);
 
   return (
-    <Card
-      className="border-destructive/40 p-0"
+    <div
+      className="panel border-destructive/40"
       style={{
         backgroundColor: "color-mix(in oklab, var(--color-destructive) 8%, transparent)",
       }}
@@ -118,7 +118,7 @@ function ScopeCreepCard({ week }: { week: WeekView }) {
           <ScopeCreepRow key={r.taskId} row={r} />
         ))}
       </div>
-    </Card>
+    </div>
   );
 }
 
