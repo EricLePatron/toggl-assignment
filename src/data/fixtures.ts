@@ -253,7 +253,7 @@ const taskSeeds: TaskSeed[] = [
     description: "Coordinating vendor onboarding, access and delivery checkpoints.",
     projectId: "retail-migration",
     assignee: "ec",
-    estimate: 5,
+    estimate: 4,
     createdAt: d(2026, 7, 27),
     start: d(2026, 8, 19),
     end: d(2026, 9, 4),
@@ -298,7 +298,7 @@ const taskSeeds: TaskSeed[] = [
     description: "Second onboarding wave with the vendor: access, checkpoints, handover.",
     projectId: "retail-migration",
     assignee: "ec",
-    estimate: 5,
+    estimate: 2,
     createdAt: d(2026, 7, 27),
     start: d(2026, 9, 10),
     end: d(2026, 9, 10),
@@ -530,7 +530,7 @@ const plannedSeeds: EntrySeed[] = [
   ["it-doc-cleanup", d(2026, 9, 4), 17, 5, "Process documentation cleanup"],
   // Next week — Retail Platform Migration
 
-  ["rm-vendor-wrapup", d(2026, 9, 10), 14, 5, "Vendor onboarding coordination — phase 2"],
+  ["rm-vendor-wrapup", d(2026, 9, 10), 14, 2, "Vendor onboarding coordination — phase 2"],
   // Next week — Internal Tools Rollout
   ["it-uat", d(2026, 9, 7), 14, 2, "UAT coordination — test plan"],
   ["it-uat", d(2026, 9, 8), 14, 2, "UAT coordination — pilot teams"],
