@@ -55,7 +55,17 @@ function dayRows(week: WeekView) {
 
 function LoggedVsPlannedChart({ week }: { week: WeekView }) {
   const days = dayRows(week);
-  const peak = Math.max(1, ...days.map((d) => Math.max(d.logged, d.planned)));
+  // Group the committed work next to the logged days: Mon–Wed logged bars
+  // immediately followed by the planned bars, so the week's total load is
+  // readable at a glance against the daily capacity line.
+  const loggedDays = days.filter((d) => d.logged > 0);
+  const plannedDays = days.filter((d) => d.planned > 0 && d.logged === 0);
+  const columns = [
+    ...loggedDays.map((d) => ({ ...d, kind: "logged" as const, value: d.logged })),
+    ...plannedDays.map((d) => ({ ...d, kind: "planned" as const, value: d.planned })),
+  ];
+  const dailyCapacity = WEEKLY_CAPACITY / 5;
+  const peak = Math.max(dailyCapacity, ...columns.map((c) => c.value), 1);
   const max = Math.max(2, Math.ceil(peak / 2) * 2);
   const ticks = Array.from({ length: 6 }, (_, i) => (max / 5) * (5 - i));
   return (
@@ -70,30 +80,46 @@ function LoggedVsPlannedChart({ week }: { week: WeekView }) {
           <span className="h-px flex-1 border-t border-dashed border-border" />
         </div>
       ))}
+      {/* Daily capacity line (weekly capacity / 5 working days) */}
+      <div
+        className="absolute inset-x-0 z-10 flex items-center gap-3"
+        style={{ bottom: `${(dailyCapacity / max) * 100}%` }}
+      >
+        <span className="w-6 shrink-0" />
+        <span className="h-px flex-1 border-t-2 border-dashed border-warning" />
+        <span className="tnum shrink-0 text-[11px] font-medium text-warning">
+          {formatH(dailyCapacity)}/day capacity
+        </span>
+      </div>
       <div className="absolute inset-y-0 left-9 right-0 flex items-end gap-6">
-        {days.map((d) => (
-          <div key={d.date} className="flex flex-1 flex-col items-center gap-2">
+        {columns.map((c) => (
+          <div key={`${c.kind}-${c.date}`} className="flex flex-1 flex-col items-center gap-2">
             <span className="tnum text-xs text-muted-foreground">
-              {d.logged || d.planned ? formatH(Math.max(d.logged, d.planned)) : ""}
+              {c.value ? formatH(c.value) : ""}
             </span>
-            <div className="flex w-full items-end justify-center gap-1">
+            <div className="flex w-full items-end justify-center">
               <div
-                className="w-1/2 rounded-t-sm bg-accent"
-                style={{ height: `${(d.logged / max) * 210}px` }}
-              />
-              <div
-                className="w-1/2 rounded-t-sm bg-accent-pink/50"
-                style={{ height: `${(d.planned / max) * 210}px` }}
+                className={cn(
+                  "w-1/2 rounded-t-sm",
+                  c.kind === "logged" ? "bg-accent" : "bg-accent-pink/50",
+                )}
+                style={{ height: `${(c.value / max) * 210}px` }}
               />
             </div>
           </div>
         ))}
       </div>
       <div className="absolute -bottom-12 left-9 right-0 flex gap-6">
-        {days.map((d) => (
-          <div key={d.date} className="flex-1 text-center text-xs text-muted-foreground">
-            <div>{d.label}</div>
-            <div className="tnum">{d.short}</div>
+        {columns.map((c) => (
+          <div
+            key={`${c.kind}-${c.date}`}
+            className="flex-1 text-center text-xs text-muted-foreground"
+          >
+            <div>
+              {c.label}
+              {c.kind === "planned" && <span className="text-accent-pink"> · plan</span>}
+            </div>
+            <div className="tnum">{c.short}</div>
           </div>
         ))}
       </div>
