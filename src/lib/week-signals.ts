@@ -92,3 +92,48 @@ export function scopeCreepTasks(week: WeekView): ScopeCreepTask[] {
   }
   return rows.sort((a, b) => b.hours - a.hours);
 }
+
+export type OverrunTask = {
+  taskId: string;
+  taskName: string;
+  projectId: string;
+  projectName: string;
+  client: string | null;
+  logged: number;
+  estimate: number;
+  overHours: number;
+  overPct: number;
+  overCost: number | null;
+};
+
+/**
+ * Tasks whose cumulative past-logged time exceeds their estimate.
+ * NOT scoped to the displayed week — overrun is a cumulative signal.
+ */
+export function overrunTasks(): OverrunTask[] {
+  const rows: OverrunTask[] = [];
+  for (const t of tasks) {
+    const estimate = taskEstimate(t.id, t.estimateHours);
+    if (estimate == null) continue;
+    const logged = timeEntries
+      .filter((e) => e.taskId === t.id && isPastEntry(e))
+      .reduce((s, e) => s + e.duration, 0);
+    if (logged <= estimate) continue;
+    const project = projectById(t.projectId);
+    if (!project) continue;
+    const overHours = logged - estimate;
+    rows.push({
+      taskId: t.id,
+      taskName: t.name,
+      projectId: project.id,
+      projectName: project.name,
+      client: project.client,
+      logged,
+      estimate,
+      overHours,
+      overPct: Math.round((overHours / estimate) * 100),
+      overCost: project.rate != null ? overHours * project.rate : null,
+    });
+  }
+  return rows.sort((a, b) => b.overHours - a.overHours);
+}

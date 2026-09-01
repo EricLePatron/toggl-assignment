@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Clock3 } from "lucide-react";
 import {
   currentUser,
   formatHours,
@@ -11,6 +11,7 @@ import {
 import { Card } from "@/components/app/primitives";
 import {
   isPastEntry,
+  overrunTasks,
   scopeCreepTasks,
   setTaskEstimate,
   useEstimateOverrides,
@@ -180,6 +181,114 @@ function ScopeCreepRow({ row }: { row: ReturnType<typeof scopeCreepTasks>[number
   );
 }
 
+function OverrunCard() {
+  const rows = overrunTasks();
+  if (rows.length === 0) return null;
+  const totalOver = rows.reduce((s, r) => s + r.overHours, 0);
+  const totalCost = rows.reduce((s, r) => s + (r.overCost ?? 0), 0);
+
+  return (
+    <div
+      className="panel border-warning/40"
+      style={{
+        backgroundColor: "color-mix(in oklab, var(--color-warning) 8%, transparent)",
+      }}
+    >
+      <div className="flex items-start gap-3 px-5 py-4">
+        <Clock3 className="size-5 shrink-0 text-warning" />
+        <div>
+          <h2 className="text-base font-semibold">Estimate overrun</h2>
+          <p className="pt-0.5 text-sm text-muted-foreground">
+            Tasks whose total logged time exceeds their estimate. Cumulative — not
+            limited to this week.
+          </p>
+        </div>
+      </div>
+      {rows.length > 1 && (
+        <div className="tnum border-y border-warning/25 px-5 py-2.5 text-sm">
+          <span className="text-muted-foreground">Total over budget : </span>
+          <span className="font-semibold">{formatHours(totalOver)}</span>
+          <span className="text-muted-foreground"> · </span>
+          <span className="font-semibold">{money(totalCost)}</span>
+        </div>
+      )}
+      <div className="divide-y divide-warning/20">
+        {rows.map((r) => (
+          <OverrunRow key={r.taskId} row={r} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function OverrunRow({ row }: { row: ReturnType<typeof overrunTasks>[number] }) {
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState("");
+
+  const save = () => {
+    const hours = Number(value.replace(",", "."));
+    if (Number.isFinite(hours) && hours > 0) setTaskEstimate(row.taskId, hours);
+    setEditing(false);
+    setValue("");
+  };
+
+  return (
+    <div className="px-5 py-3 text-sm">
+      <div className="flex items-center gap-4">
+        <div className="min-w-0 flex-1">
+          <div className="truncate font-medium">{row.taskName}</div>
+          <div className="truncate text-xs text-muted-foreground">
+            {row.projectName}
+            {row.client ? ` — ${row.client}` : ""}
+          </div>
+        </div>
+        <div className="tnum shrink-0 text-right">
+          <div>
+            {formatHours(row.logged)} logged vs {formatHours(row.estimate)} estimated{" "}
+            <span className="font-semibold text-warning">
+              (+{formatHours(row.overHours)}, +{row.overPct}%)
+            </span>
+          </div>
+          <div className="text-xs text-muted-foreground">
+            Overage cost: {row.overCost != null ? money(row.overCost) : "—"}
+          </div>
+        </div>
+        <div className="shrink-0">
+          {editing ? (
+            <div className="flex items-center gap-2">
+              <input
+                autoFocus
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") save();
+                  if (e.key === "Escape") setEditing(false);
+                }}
+                placeholder="Hours"
+                aria-label={`New estimate in hours for ${row.taskName}`}
+                className={cn(
+                  "tnum w-20 rounded-[10px] border border-border bg-surface-2 px-2 py-1 text-sm",
+                  "outline-none focus:border-accent",
+                )}
+              />
+              <button className="pill" onClick={save}>
+                Save
+              </button>
+            </div>
+          ) : (
+            <button className="pill" onClick={() => setEditing(true)}>
+              Update estimate
+            </button>
+          )}
+        </div>
+      </div>
+      <p className="pt-1.5 text-xs text-muted-foreground">
+        Consider padding similar estimates next time.
+      </p>
+    </div>
+  );
+}
+
 export function ImpactTab({ week }: { week: WeekView }) {
   useEstimateOverrides();
   return (
@@ -197,6 +306,7 @@ export function ImpactTab({ week }: { week: WeekView }) {
         </div>
       </Card>
       <ScopeCreepCard week={week} />
+      <OverrunCard />
     </>
   );
 }
