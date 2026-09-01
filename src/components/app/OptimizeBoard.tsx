@@ -836,6 +836,7 @@ function MiniWeek({
       className={cn(
         "rounded-[10px] border p-2",
         highlight ? "border-info/40 bg-info/5" : "border-border bg-surface-2/40",
+        className,
       )}
     >
       <div className="pb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
