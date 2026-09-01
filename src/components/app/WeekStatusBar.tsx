@@ -237,7 +237,7 @@ export function WeekStatusBar({ week }: { week: WeekView }) {
       <Link
         to="/optimize"
         className={cn(
-          "flex cursor-pointer items-center gap-4 rounded-xl border border-border px-4 py-2.5 transition-colors hover:border-muted-foreground/40",
+          "group flex cursor-pointer items-center gap-4 rounded-xl border border-border px-4 py-2.5 transition-colors hover:border-muted-foreground/40",
           status.severity === "critical" && "border-destructive/40",
           status.severity === "warning" && "border-warning/40",
         )}
