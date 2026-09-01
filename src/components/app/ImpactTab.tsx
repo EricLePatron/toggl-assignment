@@ -16,6 +16,7 @@ import {
   projectById,
   projectColorClass,
   timeEntries,
+  type ProjectColor,
   type WeekView,
 } from "@/data/fixtures";
 
@@ -349,6 +350,11 @@ function CapacityCard({ week }: { week: WeekView }) {
   const signal = capacitySignal(week);
   if (!signal || !signal.candidate || !signal.canMove) return null;
   const c = signal.candidate;
+
+  const currentBlock = plannedEntries.find(
+    (e) => e.taskId === c.taskId && e.date >= week.from && e.date <= week.to,
+  );
+  const currentSlotTime = currentBlock ? fmtTime(currentBlock.start) : "";
 
   const moveReasons = [
     { icon: Circle, text: "Status is Todo — not started yet" },
