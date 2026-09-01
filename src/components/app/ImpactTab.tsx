@@ -18,7 +18,7 @@ import {
   type WeekView,
 } from "@/data/fixtures";
 
-import { Card, ProjectChip, StatusBadge } from "@/components/app/primitives";
+import { Card } from "@/components/app/primitives";
 import {
   capacitySignal,
   isPastEntry,
