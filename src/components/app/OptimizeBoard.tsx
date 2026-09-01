@@ -222,7 +222,7 @@ function OverrunRow({ row }: { row: ReturnType<typeof overrunTasks>[number] }) {
   return (
     <div className="px-5 py-4">
       {/* --- Overrunning task, main info -------------------------------- */}
-      <div className="rounded-[10px] border border-warning/30 bg-surface-2/60 p-3">
+      <div className="rounded-[10px] border border-warning/40 bg-surface-2/60 p-3">
         <div className="flex items-start gap-3">
           <Clock3 className="mt-0.5 size-5 shrink-0 text-warning" />
           <div className="min-w-0 flex-1">
@@ -255,14 +255,14 @@ function OverrunRow({ row }: { row: ReturnType<typeof overrunTasks>[number] }) {
               )}
             </div>
           </div>
-          <span className="tnum shrink-0 rounded-lg border border-warning/40 bg-warning/10 px-2.5 py-1 text-xs font-semibold text-warning">
+          <span className="tnum shrink-0 rounded-lg border border-warning/40 px-2.5 py-1 text-xs font-semibold text-warning">
             +{formatHours(row.overHours)} · +{row.overPct}%
           </span>
         </div>
 
         {/* estimate vs logged bar */}
         <div className="pt-3">
-          <div className="relative h-2 overflow-hidden rounded-full bg-warning/20">
+          <div className="relative h-2 overflow-hidden rounded-full bg-surface-2">
             <div className="h-full rounded-full bg-warning" style={{ width: `${pct}%` }} />
           </div>
           <div className="tnum flex items-center justify-between pt-1.5 text-xs text-muted-foreground">
@@ -285,9 +285,9 @@ function OverrunRow({ row }: { row: ReturnType<typeof overrunTasks>[number] }) {
 
       {/* --- The same task happens again next week ---------------------- */}
       {repeat && (
-        <div className="mt-3 rounded-[10px] border border-warning/30 bg-warning/5 p-3">
+        <div className="mt-3 rounded-[10px] border border-warning/40 p-3">
           <div className="flex items-center gap-2 pb-3">
-            <span className="inline-flex h-5 items-center rounded bg-warning/15 px-2 text-[11px] font-semibold uppercase tracking-wide text-warning">
+            <span className="inline-flex h-5 items-center rounded border border-warning/40 px-2 text-[11px] font-semibold uppercase tracking-wide text-warning">
               Suggested action
             </span>
             <span className="text-xs text-muted-foreground">
@@ -319,7 +319,7 @@ function OverrunRow({ row }: { row: ReturnType<typeof overrunTasks>[number] }) {
                     "tnum inline-flex items-center rounded-lg border px-2 py-1 text-xs font-medium",
                     saved != null
                       ? "border-positive/40 bg-positive/10 text-positive"
-                      : "border-warning/40 bg-warning/10 text-warning",
+                      : "border-warning/40 text-warning",
                   )}
                 >
                   Est.{" "}
