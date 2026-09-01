@@ -73,6 +73,10 @@ export const workspace = {
     "You are trying 10 Premium features on this project — recurring, estimates, billing & more.",
 };
 
+/** Weekly capacity for the solo workspace owner (Eric Chollet), in hours. */
+export const WEEKLY_CAPACITY = 40;
+
+
 export type Member = {
   id: string;
   name: string;
@@ -427,7 +431,42 @@ const taskSeeds: TaskSeed[] = [
     status: "Todo",
     kind: "pm",
   },
+
+  /* --- Current-week planned work (Thu–Fri) -------------------------- */
+  {
+    id: "rm-cutover-rehearsal",
+    name: "Cutover rehearsal & vendor sign-off prep",
+    description:
+      "Dry-run of the migration cutover and sign-off pack. Locked to the vendor cutover date of Fri Sep 4 — cannot move.",
+    projectId: "retail-migration",
+    assignee: "ec",
+    estimate: 18,
+    createdAt: d(2026, 8, 20),
+    start: d(2026, 9, 3),
+    end: d(2026, 9, 4),
+    priority: "High",
+    tag: "Cutover",
+    status: "Todo",
+    kind: "pm",
+  },
+  {
+    id: "it-doc-cleanup",
+    name: "Process documentation cleanup",
+    description:
+      "Tidying up the rollout process documentation. No deadline this week.",
+    projectId: "internal-tools",
+    assignee: "ec",
+    estimate: 5,
+    createdAt: d(2026, 8, 20),
+    start: d(2026, 9, 4),
+    end: d(2026, 9, 4),
+    priority: "Low",
+    tag: "Documentation",
+    status: "Todo",
+    kind: "pm",
+  },
 ];
+
 
 const taskSeedById = (id: string) => taskSeeds.find((t) => t.id === id)!;
 
@@ -485,7 +524,12 @@ const loggedSeeds: EntrySeed[] = [
 
 /** Planned blocks — future only (Thu Sep 3 onwards). Never counted as tracked time. */
 const plannedSeeds: EntrySeed[] = [
+  // Current week — Thursday & Friday
+  ["rm-cutover-rehearsal", d(2026, 9, 3), 9, 9, "Cutover rehearsal — dry run"],
+  ["rm-cutover-rehearsal", d(2026, 9, 4), 8, 9, "Cutover rehearsal — vendor sign-off prep"],
+  ["it-doc-cleanup", d(2026, 9, 4), 17, 5, "Process documentation cleanup"],
   // Next week — Retail Platform Migration
+
   ["rm-vendor-wrapup", d(2026, 9, 7), 9, 3, "Vendor onboarding wrap-up — closing checklist"],
   ["rm-vendor-wrapup", d(2026, 9, 8), 9, 2, "Vendor onboarding wrap-up — handover"],
   // Next week — Internal Tools Rollout
