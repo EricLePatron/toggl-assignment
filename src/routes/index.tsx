@@ -204,27 +204,8 @@ function TimerScreen() {
         </div>
       </div>
 
-      {/* Progress bar */}
-      <div className="flex items-center gap-4 px-6 pb-3">
-        <span className="text-sm text-muted-foreground">Tracked</span>
-        <div className="relative h-2 flex-1 overflow-hidden rounded-full bg-surface-2">
-          <div
-            className="grad-accent absolute inset-y-0 left-0 rounded-full"
-            style={{ width: `${weekSummary.progress * 100}%` }}
-          />
-          <div
-            className="absolute inset-y-0 rounded-full bg-positive/80"
-            style={{ left: `${weekSummary.progress * 100}%`, right: 0 }}
-          />
-        </div>
-        <span className="tnum text-sm font-semibold">{weekSummary.tracked}</span>
-        <span className="text-sm text-muted-foreground">
-          Planned {weekSummary.planned}
-        </span>
-        <button className="text-sm text-muted-foreground transition-colors hover:text-foreground">
-          View reports ›
-        </button>
-      </div>
+      {/* Weekly status row */}
+      <WeekStatusBar week={week} />
 
       {/* Calendar */}
       <div className="flex-1 overflow-auto border-t border-border">
