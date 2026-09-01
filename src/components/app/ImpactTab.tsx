@@ -36,97 +36,8 @@ import {
 } from "@/lib/week-signals";
 import { cn } from "@/lib/utils";
 
+
 const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
-
-function dayRows(week: WeekView) {
-  return week.days.map((d, i) => ({
-    label: DAY_LABELS[i]!,
-    date: d.date,
-    short: `${Number(d.date.slice(5, 7))}/${Number(d.date.slice(8, 10))}`,
-    logged: timeEntries
-      .filter(
-        (e) => e.date === d.date && e.memberId === currentUser.id && isPastEntry(e),
-      )
-      .reduce((s, e) => s + e.duration, 0),
-    planned: plannedEntries
-      .filter((e) => e.date === d.date && e.memberId === currentUser.id)
-      .reduce((s, e) => s + e.duration, 0),
-  }));
-}
-
-function LoggedVsPlannedChart({ week }: { week: WeekView }) {
-  const days = dayRows(week);
-  // Group the committed work next to the logged days: Mon–Wed logged bars
-  // immediately followed by the planned bars, so the week's total load is
-  // readable at a glance against the daily capacity line.
-  const loggedDays = days.filter((d) => d.logged > 0);
-  const plannedDays = days.filter((d) => d.planned > 0 && d.logged === 0);
-  const columns = [
-    ...loggedDays.map((d) => ({ ...d, kind: "logged" as const, value: d.logged })),
-    ...plannedDays.map((d) => ({ ...d, kind: "planned" as const, value: d.planned })),
-  ];
-  const dailyCapacity = WEEKLY_CAPACITY / 5;
-  const peak = Math.max(dailyCapacity, ...columns.map((c) => c.value), 1);
-  const max = Math.max(2, Math.ceil(peak / 2) * 2);
-  const ticks = Array.from({ length: 6 }, (_, i) => (max / 5) * (5 - i));
-  return (
-    <div className="relative h-64">
-      {ticks.map((v) => (
-        <div
-          key={v}
-          className="absolute inset-x-0 flex items-center gap-3"
-          style={{ bottom: `${(v / max) * 100}%` }}
-        >
-          <span className="tnum w-6 shrink-0 text-xs text-subtle">{Math.round(v)}h</span>
-          <span className="h-px flex-1 border-t border-dashed border-border" />
-        </div>
-      ))}
-      {/* Daily capacity line (weekly capacity / 5 working days) */}
-      <div
-        className="absolute inset-x-0 z-10 flex items-center gap-3"
-        style={{ bottom: `${(dailyCapacity / max) * 100}%` }}
-      >
-        <span className="w-6 shrink-0" />
-        <span className="h-px flex-1 border-t-2 border-dashed border-warning" />
-        <span className="tnum shrink-0 text-[11px] font-medium text-warning">
-          {formatH(dailyCapacity)}/day capacity
-        </span>
-      </div>
-      <div className="absolute inset-y-0 left-9 right-0 flex items-end gap-6">
-        {columns.map((c) => (
-          <div key={`${c.kind}-${c.date}`} className="flex flex-1 flex-col items-center gap-2">
-            <span className="tnum text-xs text-muted-foreground">
-              {c.value ? formatH(c.value) : ""}
-            </span>
-            <div className="flex w-full items-end justify-center">
-              <div
-                className={cn(
-                  "w-1/2 rounded-t-sm",
-                  c.kind === "logged" ? "bg-accent" : "bg-accent-pink/50",
-                )}
-                style={{ height: `${(c.value / max) * 210}px` }}
-              />
-            </div>
-          </div>
-        ))}
-      </div>
-      <div className="absolute -bottom-12 left-9 right-0 flex gap-6">
-        {columns.map((c) => (
-          <div
-            key={`${c.kind}-${c.date}`}
-            className="flex-1 text-center text-xs text-muted-foreground"
-          >
-            <div>
-              {c.label}
-              {c.kind === "planned" && <span className="text-accent-pink"> · plan</span>}
-            </div>
-            <div className="tnum">{c.short}</div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 function ScopeCreepCard({ week }: { week: WeekView }) {
   const rows = scopeCreepTasks(week);
@@ -704,18 +615,6 @@ export function ImpactTab({ week }: { week: WeekView }) {
   useEstimateOverrides();
   return (
     <>
-      <Card>
-        <h2 className="pb-6 text-base font-semibold">This week — logged vs planned</h2>
-        <LoggedVsPlannedChart week={week} />
-        <div className="flex items-center justify-center gap-6 pt-16 text-xs text-muted-foreground">
-          <span className="flex items-center gap-2">
-            <span className="size-2.5 rounded-[3px] bg-accent" /> Logged
-          </span>
-          <span className="flex items-center gap-2">
-            <span className="size-2.5 rounded-[3px] bg-accent-pink/50" /> Planned
-          </span>
-        </div>
-      </Card>
       <ScopeCreepCard week={week} />
       <CapacityCard week={week} />
       <OverrunCard />
