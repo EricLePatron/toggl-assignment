@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {
   AlertTriangle,
+  ArrowDown,
   CalendarClock,
   CalendarDays,
   CheckCircle2,
@@ -498,71 +499,76 @@ function CapacityCard({ week }: { week: WeekView }) {
           </span>
         </div>
 
-        <div className="rounded-[10px] border border-info/30 bg-surface-2/60 p-3">
-          <div className="flex items-start gap-3">
-            <Circle className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-sm font-medium text-foreground">
-                {c.taskName}
-              </div>
-              <div className="flex flex-wrap items-center gap-2 pt-2">
-                <span className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2 py-1 text-xs">
-                  <FolderKanban
-                    className={cn("size-3.5", projectColorClass[c.projectColor])}
-                  />
-                  <span className="truncate max-w-[10rem]">{c.projectName}</span>
-                </span>
-                {c.client && (
-                  <span className="inline-flex items-center rounded-lg border border-border bg-surface px-2 py-1 text-xs text-muted-foreground">
-                    {c.client}
+        <div className="grid grid-cols-2 items-stretch gap-4">
+          {/* Left: task details, constrained to half width */}
+          <div className="rounded-[10px] border border-info/30 bg-surface-2/60 p-3">
+            <div className="flex items-start gap-3">
+              <Circle className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-medium text-foreground">
+                  {c.taskName}
+                </div>
+                <div className="flex flex-wrap items-center gap-2 pt-2">
+                  <span className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2 py-1 text-xs">
+                    <FolderKanban
+                      className={cn("size-3.5", projectColorClass[c.projectColor])}
+                    />
+                    <span className="truncate max-w-[10rem]">{c.projectName}</span>
                   </span>
-                )}
-                <span className="tnum inline-flex items-center rounded-lg border border-info/30 bg-info/10 px-2 py-1 text-xs font-medium text-info">
-                  {formatHours(c.hours)} total
-                </span>
-                <span className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2 py-1 text-xs">
-                  <span className="size-1.5 rounded-full bg-current" />
-                  {c.status}
-                </span>
-                {c.estimate != null && (
-                  <span className="tnum inline-flex items-center rounded-lg border border-border bg-surface px-2 py-1 text-xs text-muted-foreground">
-                    Est. {formatHours(c.estimate)}
+                  {c.client && (
+                    <span className="inline-flex items-center rounded-lg border border-border bg-surface px-2 py-1 text-xs text-muted-foreground">
+                      {c.client}
+                    </span>
+                  )}
+                  <span className="tnum inline-flex items-center rounded-lg border border-info/30 bg-info/10 px-2 py-1 text-xs font-medium text-info">
+                    {formatHours(c.hours)} total
                   </span>
-                )}
+                  <span className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2 py-1 text-xs">
+                    <span className="size-1.5 rounded-full bg-current" />
+                    {c.status}
+                  </span>
+                  {c.estimate != null && (
+                    <span className="tnum inline-flex items-center rounded-lg border border-border bg-surface px-2 py-1 text-xs text-muted-foreground">
+                      Est. {formatHours(c.estimate)}
+                    </span>
+                  )}
+                </div>
               </div>
+            </div>
+
+            <div className="mt-3 grid gap-1.5 rounded-lg border border-info/20 bg-info/5 px-3 py-2.5">
+              {moveReasons.map((r, i) => (
+                <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <r.icon className="size-3.5 shrink-0 text-info" />
+                  <span>{r.text}</span>
+                </div>
+              ))}
             </div>
           </div>
 
-          <div className="mt-3 grid gap-1.5 rounded-lg border border-info/20 bg-info/5 px-3 py-2.5">
-            {moveReasons.map((r, i) => (
-              <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
-                <r.icon className="size-3.5 shrink-0 text-info" />
-                <span>{r.text}</span>
-              </div>
-            ))}
+          {/* Right: this week → next week, stacked vertically */}
+          <div className="flex min-w-0 flex-col gap-2">
+            <MiniWeek
+              label="This week"
+              dates={week.days.map((d) => d.date)}
+              activeDates={c.plannedDates}
+              chipName={c.taskName}
+              chipColor={c.projectColor}
+              chipTime={currentSlotTime}
+              className="flex-1"
+            />
+            <ArrowDown className="size-5 shrink-0 self-center text-info" />
+            <MiniWeek
+              label="Next week"
+              dates={Array.from({ length: 7 }, (_, i) => addDaysIso(week.from, 7 + i))}
+              activeDates={[targetDate]}
+              chipName={c.taskName}
+              chipColor={c.projectColor}
+              chipTime={fmtTime(targetStart)}
+              highlight
+              className="flex-1"
+            />
           </div>
-        </div>
-
-        {/* Mini calendar: this week → proposed slot next week */}
-        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 pt-3">
-          <MiniWeek
-            label="This week"
-            dates={week.days.map((d) => d.date)}
-            activeDates={c.plannedDates}
-            chipName={c.taskName}
-            chipColor={c.projectColor}
-            chipTime={currentSlotTime}
-          />
-          <MoveRight className="size-5 shrink-0 text-info" />
-          <MiniWeek
-            label="Next week"
-            dates={Array.from({ length: 7 }, (_, i) => addDaysIso(week.from, 7 + i))}
-            activeDates={[targetDate]}
-            chipName={c.taskName}
-            chipColor={c.projectColor}
-            chipTime={fmtTime(targetStart)}
-            highlight
-          />
         </div>
 
         {pickerOpen && (
@@ -814,6 +820,7 @@ function MiniWeek({
   chipColor,
   chipTime,
   highlight,
+  className,
 }: {
   label: string;
   dates: string[];
@@ -822,6 +829,7 @@ function MiniWeek({
   chipColor: ProjectColor;
   chipTime: string;
   highlight?: boolean;
+  className?: string;
 }) {
   return (
     <div
