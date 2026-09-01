@@ -5,9 +5,12 @@ import {
   formatHours,
   money,
   plannedEntries,
+  projectById,
+  projectColorClass,
   timeEntries,
   type WeekView,
 } from "@/data/fixtures";
+
 import { Card } from "@/components/app/primitives";
 import {
   capacitySignal,
@@ -93,30 +96,44 @@ function ScopeCreepCard({ week }: { week: WeekView }) {
   const totalAmount = rows.reduce((s, r) => s + (r.amount ?? 0), 0);
 
   return (
-    <div
-      className="panel border-destructive/40"
-      style={{
-        backgroundColor: "color-mix(in oklab, var(--color-destructive) 8%, transparent)",
-      }}
-    >
-      <div className="flex items-start gap-3 px-5 py-4">
-        <AlertTriangle className="size-5 shrink-0 text-destructive" />
-        <div>
+    <div className="panel overflow-hidden border-destructive/35">
+      <div className="flex items-center gap-3 px-5 py-4">
+        <span
+          className="flex size-8 shrink-0 items-center justify-center rounded-[10px] text-destructive"
+          style={{
+            backgroundColor:
+              "color-mix(in oklab, var(--color-destructive) 16%, transparent)",
+          }}
+        >
+          <AlertTriangle className="size-4" />
+        </span>
+        <div className="min-w-0">
           <h2 className="text-base font-semibold">Scope creep</h2>
           <p className="pt-0.5 text-sm text-muted-foreground">
             Tasks logged this week that were never estimated.
           </p>
         </div>
+        <span
+          className="tnum ml-auto shrink-0 rounded-full border border-destructive/40 px-3 py-1 text-xs font-semibold text-destructive"
+          style={{
+            backgroundColor:
+              "color-mix(in oklab, var(--color-destructive) 10%, transparent)",
+          }}
+        >
+          {rows.length} task{rows.length > 1 ? "s" : ""} · {formatHours(totalHours)} ·{" "}
+          {money(totalAmount)}
+        </span>
       </div>
-      {rows.length > 1 && (
-        <div className="tnum border-y border-destructive/25 px-5 py-2.5 text-sm">
-          <span className="text-muted-foreground">Total off-scope this week : </span>
-          <span className="font-semibold">{formatHours(totalHours)}</span>
-          <span className="text-muted-foreground"> · </span>
-          <span className="font-semibold">{money(totalAmount)}</span>
-        </div>
-      )}
-      <div className="divide-y divide-destructive/20">
+
+      <div className="grid grid-cols-[minmax(0,1fr)_9rem_7rem_9rem_7rem] items-center gap-4 border-y border-border bg-surface-2/50 px-5 py-2 text-[11px] font-semibold uppercase tracking-wide text-subtle">
+        <span>Project | Task</span>
+        <span>Client</span>
+        <span className="text-right">Logged time</span>
+        <span className="text-center">Estimated time</span>
+        <span className="text-right">Amount</span>
+      </div>
+
+      <div className="divide-y divide-border">
         {rows.map((r) => (
           <ScopeCreepRow key={r.taskId} row={r} />
         ))}
@@ -128,60 +145,76 @@ function ScopeCreepCard({ week }: { week: WeekView }) {
 function ScopeCreepRow({ row }: { row: ReturnType<typeof scopeCreepTasks>[number] }) {
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState("");
+  const project = projectById(row.projectId);
 
   const save = () => {
-    const hours = Number(value.replace(",", "."));
+    const hours = Number(value.replace(",", ".").replace(/h/gi, "").trim());
     if (Number.isFinite(hours) && hours > 0) setTaskEstimate(row.taskId, hours);
     setEditing(false);
     setValue("");
   };
 
   return (
-    <div className="flex items-center gap-4 px-5 py-3 text-sm">
-      <div className="min-w-0 flex-1">
-        <div className="truncate font-medium">{row.taskName}</div>
-        <div className="truncate text-xs text-muted-foreground">
-          {row.projectName}
-          {row.client ? ` — ${row.client}` : ""}
+    <div className="grid grid-cols-[minmax(0,1fr)_9rem_7rem_9rem_7rem] items-center gap-4 px-5 py-3 text-sm transition-colors hover:bg-surface-2/40">
+      <div className="flex min-w-0 items-center gap-2.5">
+        <span
+          className={cn(
+            "size-2.5 shrink-0 rounded-[3px]",
+            project ? projectColorClass[project.color] : "bg-muted-foreground",
+          )}
+        />
+        <div className="min-w-0">
+          <div className="truncate font-medium">{row.taskName}</div>
+          <div className="truncate text-xs text-muted-foreground">{row.projectName}</div>
         </div>
       </div>
-      <div className="tnum shrink-0 text-right">
-        <div>{formatHours(row.hours)}</div>
-        <div className="text-xs text-muted-foreground">
-          {row.amount != null ? money(row.amount) : "—"}
-        </div>
-      </div>
-      <div className="shrink-0">
+      <div className="truncate text-muted-foreground">{row.client ?? "—"}</div>
+      <div className="tnum text-right">{formatHours(row.hours)}</div>
+      <div className="flex justify-center">
         {editing ? (
-          <div className="flex items-center gap-2">
-            <input
-              autoFocus
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") save();
-                if (e.key === "Escape") setEditing(false);
-              }}
-              placeholder="Hours"
-              aria-label={`Estimate in hours for ${row.taskName}`}
+          <div className="flex items-center gap-1.5">
+            <div
               className={cn(
-                "tnum w-20 rounded-[10px] border border-border bg-surface-2 px-2 py-1 text-sm",
-                "outline-none focus:border-accent",
+                "flex items-center rounded-[10px] border border-accent bg-surface-2 px-2 py-1",
+                "ring-2 ring-accent/25",
               )}
-            />
-            <button className="pill" onClick={save}>
-              Save
-            </button>
+            >
+              <input
+                autoFocus
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") save();
+                  if (e.key === "Escape") setEditing(false);
+                }}
+                onBlur={save}
+                placeholder="0"
+                aria-label={`Estimate in hours for ${row.taskName}`}
+                className="tnum w-10 bg-transparent text-right text-sm outline-none"
+              />
+              <span className="pl-0.5 text-sm text-muted-foreground">h</span>
+            </div>
+            <span className="text-xs text-subtle">total</span>
           </div>
         ) : (
-          <button className="pill" onClick={() => setEditing(true)}>
-            Add an estimate
+          <button
+            className={cn(
+              "border border-dashed pill-dashed rounded-[10px] px-2.5 py-1 text-xs text-muted-foreground",
+              "transition-colors hover:border-accent hover:text-foreground",
+            )}
+            onClick={() => setEditing(true)}
+          >
+            Set estimate
           </button>
         )}
+      </div>
+      <div className="tnum text-right font-medium">
+        {row.amount != null ? money(row.amount) : "—"}
       </div>
     </div>
   );
 }
+
 
 function OverrunCard() {
   const rows = overrunTasks();
