@@ -932,7 +932,8 @@ function toEvents(rows: TimeEntry[], start: Date): CalendarEvent[] {
       day,
       start: e.start,
       end: e.end,
-      title: e.description,
+      // Use the task name so calendar events match the Impact board naming.
+      title: e.taskId ? taskSeedById(e.taskId).name : e.description,
       ...(project ? { subtitle: project.name } : {}),
       duration: formatHours(e.duration),
       color: project?.color ?? "pink",
