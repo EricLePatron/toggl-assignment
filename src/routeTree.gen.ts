@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApprovalsRouteImport } from './routes/approvals'
 import { Route as MembersRouteImport } from './routes/members'
+import { Route as OptimizeRouteImport } from './routes/optimize'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as TasksRouteImport } from './routes/tasks'
 import { Route as TimeOffRouteImport } from './routes/time-off'
@@ -32,6 +33,11 @@ const ApprovalsRoute = ApprovalsRouteImport.update({
 const MembersRoute = MembersRouteImport.update({
   id: '/members',
   path: '/members',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OptimizeRoute = OptimizeRouteImport.update({
+  id: '/optimize',
+  path: '/optimize',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReportsRoute = ReportsRouteImport.update({
@@ -69,6 +75,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/approvals': typeof ApprovalsRoute
   '/members': typeof MembersRoute
+  '/optimize': typeof OptimizeRoute
   '/reports': typeof ReportsRoute
   '/tasks': typeof TasksRoute
   '/time-off': typeof TimeOffRoute
@@ -80,6 +87,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/approvals': typeof ApprovalsRoute
   '/members': typeof MembersRoute
+  '/optimize': typeof OptimizeRoute
   '/reports': typeof ReportsRoute
   '/tasks': typeof TasksRoute
   '/time-off': typeof TimeOffRoute
@@ -92,6 +100,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/approvals': typeof ApprovalsRoute
   '/members': typeof MembersRoute
+  '/optimize': typeof OptimizeRoute
   '/reports': typeof ReportsRoute
   '/tasks': typeof TasksRoute
   '/time-off': typeof TimeOffRoute
@@ -105,6 +114,7 @@ export interface FileRouteTypes {
     | '/'
     | '/approvals'
     | '/members'
+    | '/optimize'
     | '/reports'
     | '/tasks'
     | '/time-off'
@@ -116,6 +126,7 @@ export interface FileRouteTypes {
     | '/'
     | '/approvals'
     | '/members'
+    | '/optimize'
     | '/reports'
     | '/tasks'
     | '/time-off'
@@ -127,6 +138,7 @@ export interface FileRouteTypes {
     | '/'
     | '/approvals'
     | '/members'
+    | '/optimize'
     | '/reports'
     | '/tasks'
     | '/time-off'
@@ -139,6 +151,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApprovalsRoute: typeof ApprovalsRoute
   MembersRoute: typeof MembersRoute
+  OptimizeRoute: typeof OptimizeRoute
   ReportsRoute: typeof ReportsRoute
   TasksRoute: typeof TasksRoute
   TimeOffRoute: typeof TimeOffRoute
@@ -168,6 +181,13 @@ declare module '@tanstack/react-router' {
       path: '/members'
       fullPath: '/members'
       preLoaderRoute: typeof MembersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/optimize': {
+      id: '/optimize'
+      path: '/optimize'
+      fullPath: '/optimize'
+      preLoaderRoute: typeof OptimizeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reports': {
@@ -219,6 +239,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApprovalsRoute: ApprovalsRoute,
   MembersRoute: MembersRoute,
+  OptimizeRoute: OptimizeRoute,
   ReportsRoute: ReportsRoute,
   TasksRoute: TasksRoute,
   TimeOffRoute: TimeOffRoute,

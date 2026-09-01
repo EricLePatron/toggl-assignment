@@ -235,8 +235,7 @@ export function WeekStatusBar({ week }: { week: WeekView }) {
   return (
     <div className="px-6 pb-3">
       <Link
-        to="/reports"
-        search={{ view: "Impact" }}
+        to="/optimize"
         className={cn(
           "flex cursor-pointer items-center gap-4 rounded-xl border border-border px-4 py-2.5 transition-colors hover:border-muted-foreground/40",
           status.severity === "critical" && "border-destructive/40",
@@ -279,7 +278,9 @@ export function WeekStatusBar({ week }: { week: WeekView }) {
             segments={toSegments(plannedByProject)}
             dashed
           />
-          <span className="text-xs text-muted-foreground">View reports ›</span>
+          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors group-hover:text-foreground">
+            Optimize your week ›
+          </span>
         </div>
       </Link>
     </div>

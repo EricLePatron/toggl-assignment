@@ -14,6 +14,7 @@ import {
   Palmtree,
   Send,
   Settings,
+  Sparkles,
   Star,
   ArrowUpCircle,
 } from "lucide-react";
@@ -32,7 +33,13 @@ type NavSection = { title: string; items: NavItem[] };
 
 /** Add a screen: drop a route file and add one entry here. */
 export const navSections: NavSection[] = [
-  { title: "Track", items: [{ label: "Timer", to: "/", icon: Clock }] },
+  {
+    title: "Track",
+    items: [
+      { label: "Timer", to: "/", icon: Clock },
+      { label: "Optimize", to: "/optimize", icon: Sparkles },
+    ],
+  },
   { title: "Analyze", items: [{ label: "Reports", to: "/reports", icon: FileBarChart }] },
   {
     title: "Plan",
