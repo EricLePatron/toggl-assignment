@@ -233,12 +233,23 @@ export function capacitySignal(week: WeekView): CapacitySignal | null {
   let candidate: CapacitySignal["candidate"] = null;
   if (pick) {
     const project = projectById(pick.task.projectId);
+    const plannedDates = minePlannedBetween(week.from, week.to)
+      .filter((e) => e.taskId === pick.task.id)
+      .map((e) => e.date)
+      .sort();
     candidate = {
       taskId: pick.task.id,
       taskName: pick.task.name,
+      projectId: pick.task.projectId,
       projectName: project?.name ?? "",
+      projectColor: project?.color ?? "violet",
       client: project?.client ?? null,
       hours: pick.hours,
+      estimate: taskEstimate(pick.task.id, pick.task.estimate),
+      priority: pick.task.priority,
+      status: pick.task.status,
+      tag: pick.task.tag,
+      plannedDates,
     };
   }
 
