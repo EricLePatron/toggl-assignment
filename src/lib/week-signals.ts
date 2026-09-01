@@ -193,12 +193,23 @@ export function overrunTasks(): OverrunTask[] {
       taskName: t.name,
       projectId: project.id,
       projectName: project.name,
+      projectColor: project.color,
       client: project.client,
+      rate: project.rate ?? null,
+      tag: t.tag,
+      status: t.status,
+      priority: t.priority,
       logged,
       estimate,
       overHours,
       overPct: Math.round((overHours / estimate) * 100),
       overCost: project.rate != null ? overHours * project.rate : null,
+      repeat: findRepeat({
+        id: t.id,
+        projectId: t.projectId,
+        name: t.name,
+        loggedRatio: logged / estimate,
+      }),
     });
   }
   return rows.sort((a, b) => b.overHours - a.overHours);
