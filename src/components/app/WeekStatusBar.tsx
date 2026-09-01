@@ -1,13 +1,12 @@
 import { Link } from "@tanstack/react-router";
 import { AlertTriangle, CheckCircle2, Clock3, Info } from "lucide-react";
+import { scopeCreepTasks, isPastEntry, useEstimateOverrides } from "@/lib/week-signals";
 import {
   formatHours,
   plannedEntries,
   projectById,
   tasks,
   timeEntries,
-  TODAY,
-  NOW_HOUR,
   projectColorClass,
   type ProjectColor,
   type WeekView,
@@ -44,32 +43,20 @@ type WeekStatus = {
   secondary: string | null;
 };
 
-const iso = (date: Date) => date.toISOString().slice(0, 10);
-
-/** Entry counts only if its end time is in the past relative to the in-app "now". */
-const isPast = (e: { date: string; end: number }) =>
-  e.date < iso(TODAY) || (e.date === iso(TODAY) && e.end <= NOW_HOUR);
+const isPast = isPastEntry;
 
 function computeSignals(week: WeekView): Signal[] {
   const logged = timeEntries.filter(
     (e) => e.date >= week.from && e.date <= week.to && isPast(e),
   );
 
-  /* 1. Scope creep: no estimate at all + created after project start + past logged time */
+  /* 1. Scope creep — shared logic (see @/lib/week-signals) */
   const scopeHoursByProject = new Map<string, number>();
-  for (const t of tasks) {
-    if (t.estimateHours != null) continue;
-    const project = projectById(t.projectId);
-    if (!project || t.createdAt <= project.startDate) continue;
-    const hours = logged
-      .filter((e) => e.taskId === t.id)
-      .reduce((s, e) => s + e.duration, 0);
-    if (hours > 0) {
-      scopeHoursByProject.set(
-        t.projectId,
-        (scopeHoursByProject.get(t.projectId) ?? 0) + hours,
-      );
-    }
+  for (const row of scopeCreepTasks(week)) {
+    scopeHoursByProject.set(
+      row.projectId,
+      (scopeHoursByProject.get(row.projectId) ?? 0) + row.hours,
+    );
   }
   const scopeCreep: Signal[] = [...scopeHoursByProject.entries()]
     .sort((a, b) => b[1] - a[1])
@@ -232,6 +219,7 @@ function SegmentedBar({
 }
 
 export function WeekStatusBar({ week }: { week: WeekView }) {
+  useEstimateOverrides();
   const status = computeWeekStatus(week);
   const style = severityStyle[status.severity];
   const Icon = style.icon;
@@ -256,6 +244,7 @@ export function WeekStatusBar({ week }: { week: WeekView }) {
     <div className="px-6 pb-3">
       <Link
         to="/reports"
+        search={{ view: "Impact" }}
         className={cn(
           "flex cursor-pointer items-center gap-4 rounded-xl border border-border px-4 py-2.5 transition-colors hover:border-muted-foreground/40",
           status.severity === "critical" && "border-destructive/40",
