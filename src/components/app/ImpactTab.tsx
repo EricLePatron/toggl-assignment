@@ -347,9 +347,14 @@ function formatPlannedDates(dates: string[]) {
 }
 
 function CapacityCard({ week }: { week: WeekView }) {
+  const [customSlot, setCustomSlot] = useState<{ date: string; start: number } | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const signal = capacitySignal(week);
   if (!signal || !signal.candidate || !signal.canMove) return null;
   const c = signal.candidate;
+
+  const targetDate = customSlot?.date ?? c.proposedDate;
+  const targetStart = customSlot?.start ?? c.proposedStart;
 
   const currentBlock = plannedEntries.find(
     (e) => e.taskId === c.taskId && e.date >= week.from && e.date <= week.to,
