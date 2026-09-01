@@ -98,18 +98,79 @@ export function scopeCreepTasks(week: WeekView): ScopeCreepTask[] {
   return rows.sort((a, b) => b.hours - a.hours);
 }
 
+export type OverrunRepeat = {
+  taskId: string;
+  taskName: string;
+  date: string;
+  start: number;
+  end: number;
+  plannedHours: number;
+  estimate: number | null;
+  suggestedEstimate: number;
+  status: import("@/data/fixtures").TaskStatus;
+  priority: import("@/data/fixtures").Priority;
+  tag: string | null;
+};
+
 export type OverrunTask = {
   taskId: string;
   taskName: string;
   projectId: string;
   projectName: string;
+  projectColor: import("@/data/fixtures").ProjectColor;
   client: string | null;
+  rate: number | null;
+  tag: string | null;
+  status: import("@/data/fixtures").TaskStatus;
+  priority: import("@/data/fixtures").Priority;
   logged: number;
   estimate: number;
   overHours: number;
   overPct: number;
   overCost: number | null;
+  repeat: OverrunRepeat | null;
 };
+
+/** Base name shared by a task and its follow-up ("X — phase 2" → "X"). */
+const baseName = (name: string) => name.split(" — ")[0]!.trim().toLowerCase();
+
+/** Same task planned again later: a future planned task with the same base name. */
+function findRepeat(source: {
+  id: string;
+  projectId: string;
+  name: string;
+  loggedRatio: number;
+}): OverrunRepeat | null {
+  for (const t of tasks) {
+    if (t.id === source.id) continue;
+    if (t.projectId !== source.projectId) continue;
+    if (baseName(t.name) !== baseName(source.name)) continue;
+    const blocks = plannedEntries
+      .filter((e) => e.taskId === t.id)
+      .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : a.start - b.start));
+    if (blocks.length === 0) continue;
+    const first = blocks[0]!;
+    const last = blocks[blocks.length - 1]!;
+    const plannedHours = blocks.reduce((s, e) => s + e.duration, 0);
+    const estimate = taskEstimate(t.id, t.estimateHours);
+    const suggested =
+      Math.round((estimate ?? plannedHours) * source.loggedRatio * 2) / 2;
+    return {
+      taskId: t.id,
+      taskName: t.name,
+      date: first.date,
+      start: first.start,
+      end: last.end,
+      plannedHours,
+      estimate,
+      suggestedEstimate: suggested,
+      status: t.status,
+      priority: t.priority,
+      tag: t.tag,
+    };
+  }
+  return null;
+}
 
 /**
  * Tasks whose cumulative past-logged time exceeds their estimate.
