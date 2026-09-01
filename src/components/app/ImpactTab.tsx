@@ -199,7 +199,7 @@ function ScopeCreepRow({ row }: { row: ReturnType<typeof scopeCreepTasks>[number
         ) : (
           <button
             className={cn(
-              "pill-dashed rounded-[10px] px-2.5 py-1 text-xs text-muted-foreground",
+              "border border-dashed pill-dashed rounded-[10px] px-2.5 py-1 text-xs text-muted-foreground",
               "transition-colors hover:border-accent hover:text-foreground",
             )}
             onClick={() => setEditing(true)}
