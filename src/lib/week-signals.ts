@@ -166,8 +166,9 @@ function findRepeat(source: {
     const last = blocks[blocks.length - 1]!;
     const plannedHours = blocks.reduce((s, e) => s + e.duration, 0);
     const estimate = taskEstimate(t.id, t.estimateHours);
-    const suggested =
-      Math.round((estimate ?? plannedHours) * source.loggedRatio * 2) / 2;
+    // Observed ratio applied to the current estimate, plus a 30-min safety
+    // buffer, rounded up to the full hour (5h × 1.6 = 8h → 9h).
+    const suggested = Math.ceil((estimate ?? plannedHours) * source.loggedRatio + 0.5);
     return {
       taskId: t.id,
       taskName: t.name,
