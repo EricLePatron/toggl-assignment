@@ -5,7 +5,6 @@ import {
   formatHours,
   plannedEntries,
   projectById,
-  tasks,
   timeEntries,
   projectColorClass,
   type ProjectColor,
