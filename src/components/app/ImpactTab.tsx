@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { AlertTriangle, CalendarClock, Clock3 } from "lucide-react";
+import {
+  AlertTriangle,
+  CalendarClock,
+  CheckCircle2,
+  Circle,
+  Clock3,
+  FolderKanban,
+} from "lucide-react";
 import {
   currentUser,
   formatHours,
@@ -11,7 +18,7 @@ import {
   type WeekView,
 } from "@/data/fixtures";
 
-import { Card } from "@/components/app/primitives";
+import { Card, ProjectChip, StatusBadge } from "@/components/app/primitives";
 import {
   capacitySignal,
   isPastEntry,
