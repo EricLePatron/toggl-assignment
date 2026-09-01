@@ -142,3 +142,126 @@ export function overrunTasks(): OverrunTask[] {
   }
   return rows.sort((a, b) => b.overHours - a.overHours);
 }
+
+/* ---------------- capacity & rescheduling --------------------------- */
+
+export const CAPACITY_HOURS = WEEKLY_CAPACITY;
+
+const addDaysIso = (dateIso: string, days: number) => {
+  const dt = new Date(`${dateIso}T00:00:00Z`);
+  dt.setUTCDate(dt.getUTCDate() + days);
+  return dt.toISOString().slice(0, 10);
+};
+
+const minePlannedBetween = (from: string, to: string) =>
+  plannedEntries.filter(
+    (e) => e.memberId === currentUser.id && e.date >= from && e.date <= to,
+  );
+
+/** Logged (past) + planned hours committed in a given week, for the current user. */
+export function committedHoursForWeek(from: string, to: string) {
+  const logged = timeEntries
+    .filter(
+      (e) => e.memberId === currentUser.id && e.date >= from && e.date <= to && isPastEntry(e),
+    )
+    .reduce((s, e) => s + e.duration, 0);
+  const planned = minePlannedBetween(from, to).reduce((s, e) => s + e.duration, 0);
+  return { logged, planned, total: logged + planned };
+}
+
+export type CapacitySignal = {
+  capacity: number;
+  committed: number;
+  logged: number;
+  planned: number;
+  overage: number;
+  scopeCreepHours: number;
+  scopeCreepProjects: string[];
+  candidate: {
+    taskId: string;
+    taskName: string;
+    projectName: string;
+    client: string | null;
+    hours: number;
+  } | null;
+  canMove: boolean;
+  nextWeekTotal: number;
+  nextWeekAfterMove: number;
+};
+
+/** Over-capacity signal for the week in view. Null when the week fits. */
+export function capacitySignal(week: WeekView): CapacitySignal | null {
+  const { logged, planned, total } = committedHoursForWeek(week.from, week.to);
+  const overage = total - CAPACITY_HOURS;
+  if (overage <= 0) return null;
+
+  const creep = scopeCreepTasks(week);
+  const scopeCreepHours = creep.reduce((s, r) => s + r.hours, 0);
+  const scopeCreepProjects = [...new Set(creep.map((r) => r.projectName))];
+
+  // Eligible planned tasks in this week: not started, not high priority.
+  const plannedByTask = new Map<string, number>();
+  for (const e of minePlannedBetween(week.from, week.to)) {
+    if (!e.taskId) continue;
+    plannedByTask.set(e.taskId, (plannedByTask.get(e.taskId) ?? 0) + e.duration);
+  }
+  const eligible = [...plannedByTask.entries()]
+    .map(([taskId, hours]) => ({ task: taskById(taskId), hours }))
+    .filter(
+      (r) => r.task && r.task.status === "Todo" && r.task.priority !== "High",
+    )
+    .map((r) => ({ task: r.task!, hours: r.hours }))
+    .sort((a, b) => a.hours - b.hours);
+
+  const pick =
+    eligible.find((r) => r.hours >= overage) ?? eligible[eligible.length - 1] ?? null;
+
+  const nextFrom = addDaysIso(week.from, 7);
+  const nextTo = addDaysIso(week.to, 7);
+  const nextWeekTotal = committedHoursForWeek(nextFrom, nextTo).total;
+  const nextWeekAfterMove = nextWeekTotal + (pick?.hours ?? 0);
+
+  let candidate: CapacitySignal["candidate"] = null;
+  if (pick) {
+    const project = projectById(pick.task.projectId);
+    candidate = {
+      taskId: pick.task.id,
+      taskName: pick.task.name,
+      projectName: project?.name ?? "",
+      client: project?.client ?? null,
+      hours: pick.hours,
+    };
+  }
+
+  return {
+    capacity: CAPACITY_HOURS,
+    committed: total,
+    logged,
+    planned,
+    overage,
+    scopeCreepHours,
+    scopeCreepProjects,
+    candidate,
+    canMove: candidate != null && nextWeekAfterMove <= CAPACITY_HOURS,
+    nextWeekTotal,
+    nextWeekAfterMove,
+  };
+}
+
+/** Moves a task's planned blocks from the given week to Monday of the next week. */
+export function moveTaskToNextWeek(taskId: string, weekFrom: string) {
+  const nextMonday = addDaysIso(weekFrom, 7);
+  let cursor = 16;
+  for (const e of plannedEntries) {
+    if (e.taskId !== taskId) continue;
+    e.date = nextMonday;
+    e.start = cursor;
+    e.end = cursor + e.duration;
+    cursor = e.end;
+  }
+  plannedEntries.sort((a, b) =>
+    a.date < b.date ? -1 : a.date > b.date ? 1 : a.start - b.start,
+  );
+  version++;
+  listeners.forEach((l) => l());
+}
