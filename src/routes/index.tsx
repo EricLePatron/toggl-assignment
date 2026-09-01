@@ -21,6 +21,8 @@ import {
 } from "lucide-react";
 import {
   projectColorClass,
+  NOW_HOUR,
+  type ProjectColor,
   weekView,
   WEEK_OFFSET_MAX,
   WEEK_OFFSET_MIN,
@@ -53,6 +55,15 @@ export const Route = createFileRoute("/")({
   }),
   component: TimerScreen,
 });
+
+const projectBorderClass: Record<ProjectColor, string> = {
+  green: "border-positive",
+  pink: "border-accent-pink",
+  violet: "border-accent",
+  orange: "border-warning",
+  teal: "border-[oklch(0.75_0.13_195)]",
+  red: "border-destructive",
+};
 
 const START_HOUR = 3;
 const END_HOUR = 20;
@@ -271,8 +282,16 @@ function TimerScreen() {
                       <div
                         key={e.id}
                         className={cn(
-                          "absolute overflow-hidden rounded-lg border border-black/20 px-2 py-1.5 text-[11px] leading-tight text-black/85 shadow-sm",
-                          projectColorClass[e.color],
+                          "absolute overflow-hidden rounded-lg px-2 py-1.5 text-[11px] leading-tight shadow-sm",
+                          e.planned
+                            ? cn(
+                                "border border-dashed bg-transparent text-foreground/80",
+                                projectBorderClass[e.color],
+                              )
+                            : cn(
+                                "border border-black/20 text-black/85",
+                                projectColorClass[e.color],
+                              ),
                         )}
                         style={{
                           top: (e.start - START_HOUR) * HOUR_PX,
@@ -300,7 +319,7 @@ function TimerScreen() {
                 {week.isCurrent && dayIndex === 2 && (
                   <div
                     className="pointer-events-none absolute inset-x-0 z-10 border-t border-destructive"
-                    style={{ top: (10.5 - START_HOUR) * HOUR_PX }}
+                    style={{ top: (NOW_HOUR - START_HOUR) * HOUR_PX }}
                   >
                     <span className="absolute -left-1 -top-1 size-2 rounded-full bg-destructive" />
                   </div>
