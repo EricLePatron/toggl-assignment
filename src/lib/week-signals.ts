@@ -227,17 +227,20 @@ function findRepeat(source: {
 
 /**
  * Tasks whose cumulative past-logged time exceeds their estimate.
- * NOT scoped to the displayed week — overrun is a cumulative signal.
+ * Only surfaced for the displayed week when the task has logged activity
+ * that week, so the Optimize page and the Calendar status bar stay in sync.
  */
-export function overrunTasks(): OverrunTask[] {
+export function overrunTasks(week: WeekView): OverrunTask[] {
   const rows: OverrunTask[] = [];
   for (const t of tasks) {
     const estimate = taskEstimate(t.id, t.estimateHours);
     if (estimate == null) continue;
-    const logged = timeEntries
-      .filter((e) => e.taskId === t.id && isPastEntry(e))
-      .reduce((s, e) => s + e.duration, 0);
-    if (logged <= estimate) continue;
+    const entries = timeEntries.filter((e) => e.taskId === t.id && isPastEntry(e));
+    const logged = entries.reduce((s, e) => s + e.duration, 0);
+    const activeThisWeek = entries.some(
+      (e) => e.date >= week.from && e.date <= week.to,
+    );
+    if (logged <= estimate || !activeThisWeek) continue;
     const project = projectById(t.projectId);
     if (!project) continue;
     const overHours = logged - estimate;
