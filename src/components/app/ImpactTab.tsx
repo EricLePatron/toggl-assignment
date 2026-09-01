@@ -19,6 +19,7 @@ import {
   projectById,
   projectColorClass,
   timeEntries,
+  WEEKLY_CAPACITY,
   type ProjectColor,
   type WeekView,
 } from "@/data/fixtures";
