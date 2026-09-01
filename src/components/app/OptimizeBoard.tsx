@@ -618,13 +618,57 @@ function CapacityCard({ week }: { week: WeekView }) {
   );
 }
 
+function OptimizeEmptyState({ week }: { week: WeekView }) {
+  const { logged, planned, total } = committedHoursForWeek(week.from, week.to);
+  return (
+    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-surface-2/30 px-6 py-16 text-center">
+      <div className="grad-accent flex size-16 items-center justify-center rounded-2xl text-primary-foreground shadow-lg shadow-accent/20">
+        <CheckCircle2 className="size-8" />
+      </div>
+      <h2 className="mt-6 text-xl font-semibold">Nothing to optimize this week</h2>
+      <p className="mt-2 max-w-md text-sm text-muted-foreground">
+        Your week looks healthy. No scope creep, estimate overruns, or capacity
+        issues were detected.
+      </p>
+
+      <div className="mt-8 grid grid-cols-4 gap-4 rounded-xl border border-border bg-surface px-5 py-4">
+        <div className="text-center">
+          <div className="tnum text-lg font-semibold">{formatHours(logged)}</div>
+          <div className="text-xs text-muted-foreground">Logged</div>
+        </div>
+        <div className="text-center">
+          <div className="tnum text-lg font-semibold">{formatHours(planned)}</div>
+          <div className="text-xs text-muted-foreground">Planned</div>
+        </div>
+        <div className="text-center">
+          <div className="tnum text-lg font-semibold">{formatHours(total)}</div>
+          <div className="text-xs text-muted-foreground">Committed</div>
+        </div>
+        <div className="text-center">
+          <div className="tnum text-lg font-semibold">{formatHours(WEEKLY_CAPACITY)}</div>
+          <div className="text-xs text-muted-foreground">Capacity</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function OptimizeBoard({ week }: { week: WeekView }) {
   useEstimateOverrides();
+  const hasScopeCreep = scopeCreepTasks(week).length > 0;
+  const hasOverrun = overrunTasks(week).length > 0;
+  const hasCapacity = capacitySignal(week) != null;
+  const hasSignals = hasScopeCreep || hasOverrun || hasCapacity;
+
+  if (!hasSignals) {
+    return <OptimizeEmptyState week={week} />;
+  }
+
   return (
     <>
       <ScopeCreepCard week={week} />
       <CapacityCard week={week} />
-      <OverrunCard />
+      <OverrunCard week={week} />
     </>
   );
 }
