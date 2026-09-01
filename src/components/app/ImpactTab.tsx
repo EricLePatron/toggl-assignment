@@ -37,6 +37,8 @@ import {
 import { cn } from "@/lib/utils";
 
 
+const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
+
 function ScopeCreepCard({ week }: { week: WeekView }) {
   const rows = scopeCreepTasks(week);
   if (rows.length === 0) return null;
