@@ -28,6 +28,7 @@ import {
 import { Card } from "@/components/app/primitives";
 import {
   capacitySignal,
+  committedHoursForWeek,
   completedEstimateUpdate,
   isPastEntry,
   moveTaskToNextWeek,
@@ -168,8 +169,8 @@ function ScopeCreepRow({ row }: { row: ReturnType<typeof scopeCreepTasks>[number
 }
 
 
-function OverrunCard() {
-  const rows = overrunTasks();
+function OverrunCard({ week }: { week: WeekView }) {
+  const rows = overrunTasks(week);
   if (rows.length === 0) return null;
   const totalOver = rows.reduce((s, r) => s + r.overHours, 0);
   const totalCost = rows.reduce((s, r) => s + (r.overCost ?? 0), 0);
@@ -183,8 +184,8 @@ function OverrunCard() {
         <div className="min-w-0 flex-1">
           <h2 className="text-base font-semibold">Estimate overrun</h2>
           <p className="pt-0.5 text-sm text-muted-foreground">
-            Tasks whose total logged time exceeds their estimate. Cumulative — not
-            limited to this week.
+            Tasks whose total logged time exceeds their estimate. Shown when they
+            have activity this week.
           </p>
         </div>
         <span className="tnum ml-auto shrink-0 rounded-full border border-warning/40 px-3 py-1 text-xs font-semibold text-warning">
