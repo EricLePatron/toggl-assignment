@@ -291,13 +291,16 @@ export function capacitySignal(week: WeekView): CapacitySignal | null {
   };
 }
 
-/** Moves a task's planned blocks from the given week to Monday of the next week. */
-export function moveTaskToNextWeek(taskId: string, weekFrom: string) {
-  const nextMonday = addDaysIso(weekFrom, 7);
-  let cursor = 16;
+/** Moves a task's planned blocks to a specific slot (date + start hour). */
+export function moveTaskToNextWeek(
+  taskId: string,
+  targetDate: string,
+  startHour = 9,
+) {
+  let cursor = startHour;
   for (const e of plannedEntries) {
     if (e.taskId !== taskId) continue;
-    e.date = nextMonday;
+    e.date = targetDate;
     e.start = cursor;
     e.end = cursor + e.duration;
     cursor = e.end;
