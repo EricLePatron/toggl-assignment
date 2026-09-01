@@ -2,7 +2,10 @@ import { useState } from "react";
 import {
   AlertTriangle,
   CalendarClock,
+  CalendarDays,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   Circle,
   Clock3,
   FolderKanban,
