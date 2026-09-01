@@ -427,7 +427,42 @@ const taskSeeds: TaskSeed[] = [
     status: "Todo",
     kind: "pm",
   },
+
+  /* --- Current-week planned work (Thu–Fri) -------------------------- */
+  {
+    id: "rm-cutover-rehearsal",
+    name: "Cutover rehearsal & vendor sign-off prep",
+    description:
+      "Dry-run of the migration cutover and sign-off pack. Locked to the vendor cutover date of Fri Sep 4 — cannot move.",
+    projectId: "retail-migration",
+    assignee: "ec",
+    estimate: 18,
+    createdAt: d(2026, 8, 20),
+    start: d(2026, 9, 3),
+    end: d(2026, 9, 4),
+    priority: "High",
+    tag: "Cutover",
+    status: "Todo",
+    kind: "pm",
+  },
+  {
+    id: "it-doc-cleanup",
+    name: "Process documentation cleanup",
+    description:
+      "Tidying up the rollout process documentation. No deadline this week.",
+    projectId: "internal-tools",
+    assignee: "ec",
+    estimate: 5,
+    createdAt: d(2026, 8, 20),
+    start: d(2026, 9, 4),
+    end: d(2026, 9, 4),
+    priority: "Low",
+    tag: "Documentation",
+    status: "Todo",
+    kind: "pm",
+  },
 ];
+
 
 const taskSeedById = (id: string) => taskSeeds.find((t) => t.id === id)!;
 
