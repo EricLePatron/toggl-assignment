@@ -1,12 +1,14 @@
 /**
- * Single source of mock data shared by every screen — Studio North dataset.
+ * Single source of mock data shared by every screen — Eric Chollet (freelance PM) dataset.
  *
- * Everything below is generated deterministically from a small set of
- * declarative inputs (members, projects, tasks) into a flat list of time
- * entries. Every figure displayed in the app derives from `timeEntries`,
- * so no two screens can contradict each other.
+ * Hand-authored, static. Every figure displayed anywhere in the app derives from
+ * `timeEntries` (logged) and `plannedEntries` (future, planned only), so no two
+ * screens can contradict each other.
  *
- * Window: March 1 2026 → September 30 2026 ("today" = Wednesday September 30 2026).
+ * In-app "today" = Wednesday September 2 2026, ~14:00.
+ * Visible window: Mon Aug 31 2026 → Sun Sep 13 2026 (current week + next week).
+ * A handful of entries logged before Aug 31 exist only so that tasks started in
+ * earlier weeks roll up correctly; week navigation is clamped to the two weeks.
  */
 
 /* ------------------------------------------------------------------ */
@@ -37,8 +39,6 @@ const MONTH_ABBR = [
 ];
 const shortDate = (date: Date) =>
   `${MONTH_ABBR[date.getUTCMonth()]} ${date.getUTCDate()}`;
-const monthKey = (date: Date) =>
-  `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
 
 export const CURRENCY = "EUR";
 export const money = (v: number) =>
@@ -52,33 +52,22 @@ export function formatHours(h: number) {
   return min ? `${hours}h ${min}m` : `${hours}h`;
 }
 
-/** Deterministic PRNG so the dataset never changes between renders. */
-function mulberry32(seed: number) {
-  let a = seed;
-  return () => {
-    a |= 0;
-    a = (a + 0x6d2b79f5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-const rand = mulberry32(20260831);
-const jitter = (base: number, pct: number) => base * (1 + (rand() * 2 - 1) * pct);
 const q = (h: number) => Math.round(h * 4) / 4;
 
-export const TODAY = d(2026, 9, 30);
-export const WINDOW_START = d(2026, 3, 1);
-export const WINDOW_END = d(2026, 9, 30);
-export const CURRENT_WEEK_START = mondayOf(TODAY); // Mon Sep 28 2026
+export const TODAY = d(2026, 9, 2); // Wednesday
+export const NOW_HOUR = 14; // in-app "now" on Wednesday
+export const CURRENT_WEEK_START = mondayOf(TODAY); // Mon Aug 31 2026
+export const NEXT_WEEK_START = addDays(CURRENT_WEEK_START, 7); // Mon Sep 7 2026
+export const WINDOW_START = CURRENT_WEEK_START;
+export const WINDOW_END = addDays(CURRENT_WEEK_START, 13); // Sun Sep 13 2026
 
 /* ------------------------------------------------------------------ */
 /* Workspace, members                                                  */
 /* ------------------------------------------------------------------ */
 
 export const workspace = {
-  name: "Studio North",
-  shortName: "Studio North",
+  name: "Eric Chollet",
+  shortName: "Eric Chollet",
   trialDaysLeft: 29,
   trialCopy:
     "You are trying 10 Premium features on this project — recurring, estimates, billing & more.",
@@ -98,41 +87,20 @@ export type Member = {
 
 export const teamMembers: Member[] = [
   {
-    id: "ce",
-    name: "Chollet Eric",
-    initials: "CE",
-    email: "eric.chollet@studionorth.com",
-    role: "Product Manager",
-    costRate: 70,
+    id: "ec",
+    name: "Eric Chollet",
+    initials: "EC",
+    email: "eric.chollet@ericchollet.com",
+    role: "Independent Project Manager",
+    costRate: 55,
     capacity: 35,
     status: "Active",
-    groups: "Leadership",
-  },
-  {
-    id: "tn",
-    name: "Théo Novak",
-    initials: "TN",
-    email: "theo.novak@studionorth.com",
-    role: "Product Designer",
-    costRate: 65,
-    capacity: 38,
-    status: "Active",
-    groups: "Design",
-  },
-  {
-    id: "ao",
-    name: "Amara Okafor",
-    initials: "AO",
-    email: "amara.okafor@studionorth.com",
-    role: "Full-stack Developer",
-    costRate: 75,
-    capacity: 38,
-    status: "Active",
-    groups: "Engineering",
+    groups: "Owner",
   },
 ];
 
-export const memberById = (id: string) => teamMembers.find((m) => m.id === id)!;
+export const memberById = (id: string) =>
+  teamMembers.find((m) => m.id === id) ?? teamMembers[0]!;
 export const currentUser = {
   ...teamMembers[0]!,
   roleLabel: "Workspace administrator",
@@ -169,7 +137,7 @@ type ProjectSeed = {
   color: ProjectColor;
   billableProject: boolean;
   rate: number | null;
-  /** Date the rate became effective in Toggl — NOT necessarily the project start. */
+  /** Rate effective-from = actual project start in this dataset (no billing gaps). */
   rateEffectiveFrom: Date | null;
   start: Date;
   end: Date;
@@ -178,52 +146,39 @@ type ProjectSeed = {
 
 const projectSeeds: ProjectSeed[] = [
   {
-    id: "verdant-redesign",
-    name: "Verdant Health — Product Redesign",
-    client: "Verdant Health",
-    color: "green",
-    billableProject: true,
-    rate: 95,
-    rateEffectiveFrom: d(2026, 3, 2),
-    start: d(2026, 3, 2),
-    end: d(2026, 9, 30),
-    status: "Active",
-  },
-  {
-    id: "halyard-onboarding",
-    name: "Halyard Finance — Onboarding Flow",
-    client: "Halyard Finance",
+    id: "retail-migration",
+    name: "Retail Platform Migration",
+    client: "Meridian Retail",
     color: "violet",
     billableProject: true,
-    rate: 110,
-    // Rate only configured in June, two months after the project actually started.
-    rateEffectiveFrom: d(2026, 6, 1),
-    start: d(2026, 4, 6),
-    end: d(2026, 9, 30),
+    rate: 85,
+    rateEffectiveFrom: d(2026, 7, 27),
+    start: d(2026, 7, 27), // 5 weeks before today
+    end: d(2026, 9, 13),
     status: "Active",
   },
   {
-    id: "halyard-compliance",
-    name: "Halyard Finance — Compliance Audit Trail",
-    client: "Halyard Finance",
+    id: "internal-tools",
+    name: "Internal Tools Rollout",
+    client: "Bramwell Logistics",
+    color: "green",
+    billableProject: true,
+    rate: 80,
+    rateEffectiveFrom: d(2026, 8, 10),
+    start: d(2026, 8, 10), // 3 weeks before today
+    end: d(2026, 9, 13),
+    status: "Active",
+  },
+  {
+    id: "vendor-selection",
+    name: "Vendor Selection Program",
+    client: "Solène Cosmetics",
     color: "teal",
     billableProject: true,
-    rate: 110,
-    rateEffectiveFrom: d(2026, 6, 29),
-    start: d(2026, 7, 1),
-    end: d(2026, 9, 30),
-    status: "Active",
-  },
-  {
-    id: "studio-internal",
-    name: "Studio North — Internal & Ops",
-    client: null,
-    color: "orange",
-    billableProject: false,
-    rate: null,
-    rateEffectiveFrom: null,
-    start: d(2026, 3, 2),
-    end: d(2026, 9, 30),
+    rate: 75,
+    rateEffectiveFrom: d(2026, 8, 31),
+    start: d(2026, 8, 31), // started this week
+    end: d(2026, 9, 13),
     status: "Active",
   },
 ];
@@ -243,637 +198,241 @@ type TaskSeed = {
   name: string;
   description: string;
   projectId: string;
-  assignee: string; // member id
-  estimate: number; // hours
-  /** actual / estimate — drives the generated time entries. */
-  factor: number;
+  assignee: string;
+  /** null = genuinely no estimate (out-of-scope work added mid-project). */
+  estimate: number | null;
+  /** Date the task was created / added to the project scope. */
+  createdAt: Date;
   start: Date;
   end: Date;
   priority: Priority;
   tag: string | null;
   status: TaskStatus;
   kind: TaskKind;
-  /** Ongoing buckets absorb whatever capacity is left in a week. */
-  flex?: boolean;
 };
 
-const INTEGRATION_TAG = "Integration & third-party";
-
 const taskSeeds: TaskSeed[] = [
-  /* ---- Amara: integration & third-party coordination (systematic overrun) ---- */
+  /* --- Retail Platform Migration (Meridian Retail) ------------------ */
   {
-    id: "t-int-1",
-    name: "Third-party auth integration",
-    description:
-      "Wire Verdant's SSO provider into the new app shell, including the client's legacy session bridge.",
-    projectId: "verdant-redesign",
-    assignee: "ao",
-    estimate: 10,
-    factor: 1.5,
-    start: d(2026, 3, 16),
-    end: d(2026, 3, 27),
-    priority: "High",
-    tag: INTEGRATION_TAG,
-    status: "Done",
-    kind: "integration",
-  },
-  {
-    id: "t-int-2",
-    name: "Sync data with client's CRM",
-    description:
-      "Two-way sync between Verdant's HubSpot instance and the patient records service.",
-    projectId: "verdant-redesign",
-    assignee: "ao",
-    estimate: 14,
-    factor: 1.55,
-    start: d(2026, 4, 27),
-    end: d(2026, 5, 8),
-    priority: "High",
-    tag: INTEGRATION_TAG,
-    status: "Done",
-    kind: "integration",
-  },
-  {
-    id: "t-int-3",
-    name: "Connect payment provider API",
-    description:
-      "Stripe Connect onboarding for Halyard, incl. sandbox credentials chased from the provider.",
-    projectId: "halyard-onboarding",
-    assignee: "ao",
-    estimate: 16,
-    factor: 1.68,
-    start: d(2026, 6, 8),
-    end: d(2026, 6, 19),
-    priority: "High",
-    tag: INTEGRATION_TAG,
-    status: "Done",
-    kind: "integration",
-  },
-  {
-    id: "t-int-4",
-    name: "Coordinate handoff with client's internal dev team",
-    description:
-      "Working sessions with Halyard's in-house engineers to hand over the onboarding services.",
-    projectId: "halyard-onboarding",
-    assignee: "ao",
-    estimate: 8,
-    factor: 1.5,
-    start: d(2026, 6, 15),
-    end: d(2026, 6, 26),
-    priority: "Medium",
-    tag: INTEGRATION_TAG,
-    status: "Done",
-    kind: "integration",
-  },
-  {
-    id: "t-int-5",
-    name: "Wearables data integration (partner SDK)",
-    description:
-      "Ingest step and sleep data from Verdant's wearable partner SDK, incl. partner support loop.",
-    projectId: "verdant-redesign",
-    assignee: "ao",
-    estimate: 12,
-    factor: 1.62,
-    start: d(2026, 7, 13),
-    end: d(2026, 7, 24),
-    priority: "High",
-    tag: INTEGRATION_TAG,
-    status: "Done",
-    kind: "integration",
-  },
-  {
-    id: "t-int-6",
-    name: "Audit log export integration",
-    description:
-      "Push signed audit events to Halyard's SIEM vendor; format negotiated with the vendor.",
-    projectId: "halyard-compliance",
-    assignee: "ao",
-    estimate: 10,
-    factor: 1.56,
-    start: d(2026, 8, 3),
-    end: d(2026, 8, 14),
-    priority: "Medium",
-    tag: INTEGRATION_TAG,
-    status: "Done",
-    kind: "integration",
-  },
-  {
-    id: "t-int-7",
-    name: "KYC provider integration & handoff",
-    description:
-      "Identity verification provider integration for the audit trail, plus handoff to Halyard's team.",
-    projectId: "halyard-compliance",
-    assignee: "ao",
-    estimate: 10,
-    factor: 1.45,
-    start: d(2026, 9, 21),
-    end: d(2026, 10, 3), // due in 3 days, already over estimate
-    priority: "High",
-    tag: INTEGRATION_TAG,
-    status: "In Progress",
-    kind: "integration",
-  },
-
-  /* ---- Amara: plain feature implementation (on target) ---- */
-  {
-    id: "t-feat-1",
-    name: "Build patient profile page",
-    description: "New patient profile screen with vitals timeline and care team panel.",
-    projectId: "verdant-redesign",
-    assignee: "ao",
-    estimate: 12,
-    factor: 1.02,
-    start: d(2026, 3, 30),
-    end: d(2026, 4, 10),
-    priority: "Medium",
-    tag: "Feature",
-    status: "Done",
-    kind: "feature",
-  },
-  {
-    id: "t-feat-2",
-    name: "Build settings page",
-    description: "Account, notification and privacy settings for the Verdant app.",
-    projectId: "verdant-redesign",
-    assignee: "ao",
-    estimate: 12,
-    factor: 1.05,
-    start: d(2026, 5, 25),
-    end: d(2026, 6, 5),
-    priority: "Medium",
-    tag: "Feature",
-    status: "Done",
-    kind: "feature",
-  },
-  {
-    id: "t-feat-3",
-    name: "Build onboarding form",
-    description: "Multi-step onboarding form with inline validation for Halyard.",
-    projectId: "halyard-onboarding",
-    assignee: "ao",
-    estimate: 14,
-    factor: 1.07,
-    start: d(2026, 6, 1),
-    end: d(2026, 6, 12),
-    priority: "High",
-    tag: "Feature",
-    status: "Done",
-    kind: "feature",
-  },
-  {
-    id: "t-feat-4",
-    name: "Implement dashboard charts",
-    description: "Adherence and engagement charts on the Verdant dashboard.",
-    projectId: "verdant-redesign",
-    assignee: "ao",
-    estimate: 16,
-    factor: 0.96,
-    start: d(2026, 6, 29),
-    end: d(2026, 7, 10),
-    priority: "Medium",
-    tag: "Feature",
-    status: "Done",
-    kind: "feature",
-  },
-  {
-    id: "t-feat-5",
-    name: "Implement audit trail table view",
-    description: "Filterable, paginated audit event table with CSV export.",
-    projectId: "halyard-compliance",
-    assignee: "ao",
-    estimate: 10,
-    factor: 0.98,
-    start: d(2026, 7, 13),
-    end: d(2026, 7, 24),
-    priority: "Medium",
-    tag: "Feature",
-    status: "Done",
-    kind: "feature",
-  },
-  {
-    id: "t-feat-6",
-    name: "Refactor shared API client",
-    description: "Unify request handling and error mapping across both client apps.",
-    projectId: "verdant-redesign",
-    assignee: "ao",
-    estimate: 8,
-    factor: 1.06,
-    start: d(2026, 8, 17),
-    end: d(2026, 8, 26),
-    priority: "Low",
-    tag: "Feature",
-    status: "Done",
-    kind: "feature",
-  },
-  {
-    id: "t-feat-7",
-    name: "Notification preferences API",
-    description: "Backend endpoints for per-channel notification preferences.",
-    projectId: "verdant-redesign",
-    assignee: "ao",
+    id: "rm-roadmap",
+    name: "Define migration roadmap",
+    description: "Phasing, dependencies and cutover plan for the platform migration.",
+    projectId: "retail-migration",
+    assignee: "ec",
     estimate: 6,
-    factor: 1.0,
-    start: d(2026, 8, 24),
-    end: d(2026, 9, 4),
-    priority: "Low",
-    tag: "Feature",
-    status: "Todo",
-    kind: "feature",
-  },
-
-  /* ---- Théo: design ---- */
-  {
-    id: "t-des-1",
-    name: "Discovery workshops & user interviews",
-    description: "Five interviews with Verdant care coordinators, synthesis in FigJam.",
-    projectId: "verdant-redesign",
-    assignee: "tn",
-    estimate: 14,
-    factor: 1.08,
-    start: d(2026, 3, 2),
-    end: d(2026, 3, 13),
+    createdAt: d(2026, 7, 27),
+    start: d(2026, 7, 28),
+    end: d(2026, 7, 29),
     priority: "High",
-    tag: "Discovery",
+    tag: "Planning",
     status: "Done",
-    kind: "design",
+    kind: "pm",
   },
   {
-    id: "t-des-2",
-    name: "Design system foundations",
-    description: "Type scale, color tokens and core components for the Verdant redesign.",
-    projectId: "verdant-redesign",
-    assignee: "tn",
-    estimate: 20,
-    factor: 1.12,
-    start: d(2026, 3, 16),
-    end: d(2026, 4, 3),
-    priority: "High",
-    tag: "Design system",
-    status: "Done",
-    kind: "design",
-  },
-  {
-    id: "t-des-3",
-    name: "Patient dashboard high-fidelity",
-    description: "High-fidelity screens for the redesigned patient dashboard.",
-    projectId: "verdant-redesign",
-    assignee: "tn",
-    estimate: 18,
-    factor: 0.98,
-    start: d(2026, 4, 13),
-    end: d(2026, 4, 30),
-    priority: "High",
-    tag: "UI",
-    status: "Done",
-    kind: "design",
-  },
-  {
-    id: "t-des-4",
-    name: "Onboarding flow wireframes",
-    description: "End-to-end wireframes for Halyard's account opening flow.",
-    projectId: "halyard-onboarding",
-    assignee: "tn",
-    estimate: 16,
-    factor: 1.06,
-    start: d(2026, 4, 20),
-    end: d(2026, 5, 8),
-    priority: "High",
-    tag: "UX",
-    status: "Done",
-    kind: "design",
-  },
-  {
-    id: "t-des-5",
-    name: "Onboarding UI high-fidelity",
-    description: "Visual design for the onboarding steps, incl. KYC and funding screens.",
-    projectId: "halyard-onboarding",
-    assignee: "tn",
-    estimate: 22,
-    factor: 1.1,
-    start: d(2026, 5, 18),
-    end: d(2026, 6, 12),
-    priority: "High",
-    tag: "UI",
-    status: "Done",
-    kind: "design",
-  },
-  {
-    id: "t-des-6",
-    name: "Usability test round 2",
-    description: "Moderated tests of the onboarding prototype with six Halyard users.",
-    projectId: "halyard-onboarding",
-    assignee: "tn",
+    id: "rm-workshops",
+    name: "Stakeholder alignment workshops",
+    description: "Alignment sessions with retail ops, IT and the migration vendor.",
+    projectId: "retail-migration",
+    assignee: "ec",
     estimate: 10,
-    factor: 1.05,
-    start: d(2026, 6, 22),
-    end: d(2026, 7, 3),
+    createdAt: d(2026, 7, 27),
+    start: d(2026, 8, 4),
+    end: d(2026, 8, 12),
     priority: "Medium",
-    tag: "Research",
+    tag: "Workshop",
     status: "Done",
-    kind: "design",
+    kind: "pm",
   },
   {
-    id: "t-des-7",
-    name: "Compliance screens design",
-    description: "Audit trail, evidence export and reviewer screens.",
-    projectId: "halyard-compliance",
-    assignee: "tn",
-    estimate: 12,
-    factor: 1.09,
-    start: d(2026, 7, 6),
-    end: d(2026, 7, 17),
-    priority: "Medium",
-    tag: "UI",
-    status: "Done",
-    kind: "design",
-  },
-  {
-    id: "t-des-8",
-    name: "Mobile adaptation — Verdant app",
-    description: "Responsive adaptation of the redesigned screens for small viewports.",
-    projectId: "verdant-redesign",
-    assignee: "tn",
-    estimate: 18,
-    factor: 1.11,
-    start: d(2026, 8, 3),
-    end: d(2026, 8, 21),
+    id: "rm-vendor-onboarding",
+    name: "Vendor onboarding coordination",
+    description: "Coordinating vendor onboarding, access and delivery checkpoints.",
+    projectId: "retail-migration",
+    assignee: "ec",
+    estimate: 5,
+    createdAt: d(2026, 7, 27),
+    start: d(2026, 8, 19),
+    end: d(2026, 9, 4),
     priority: "High",
-    tag: "UI",
-    status: "Done",
-    kind: "design",
+    tag: "Coordination",
+    status: "In Progress",
+    kind: "pm",
   },
   {
-    id: "t-des-9",
-    name: "Accessibility pass — contrast & focus states",
-    description: "WCAG AA audit of the new component library and remediation specs.",
-    projectId: "verdant-redesign",
-    assignee: "tn",
-    estimate: 8,
-    factor: 1.15,
-    start: d(2026, 8, 24),
+    id: "rm-shipment-comms",
+    name: "Emergency shipment delay comms plan",
+    description: "Unplanned communication plan after the vendor shipment delay.",
+    projectId: "retail-migration",
+    assignee: "ec",
+    estimate: null, // out of scope — added mid-project, no estimate
+    createdAt: d(2026, 9, 1),
+    start: d(2026, 9, 1),
+    end: d(2026, 9, 4),
+    priority: "High",
+    tag: "Out of scope",
+    status: "In Progress",
+    kind: "pm",
+  },
+  {
+    id: "rm-escalation-call",
+    name: "Additional client escalation call",
+    description: "Extra escalation call requested by Meridian Retail leadership.",
+    projectId: "retail-migration",
+    assignee: "ec",
+    estimate: null, // out of scope — added mid-project, no estimate
+    createdAt: d(2026, 9, 2),
+    start: d(2026, 9, 2),
     end: d(2026, 9, 2),
-    priority: "Medium",
-    tag: "Design system",
-    status: "In Progress",
-    kind: "design",
-  },
-  {
-    id: "t-des-10",
-    name: "Marketing site refresh concepts",
-    description: "Blocked: waiting on Verdant's new brand guidelines.",
-    projectId: "verdant-redesign",
-    assignee: "tn",
-    estimate: 10,
-    factor: 0.25,
-    start: d(2026, 8, 10),
-    end: d(2026, 9, 11),
-    priority: "Low",
-    tag: "Brand",
-    status: "Blocked",
-    kind: "design",
-  },
-
-  /* ---- Eric: PM / client work ---- */
-  {
-    id: "t-pm-1",
-    name: "Verdant engagement scoping",
-    description: "Scope, milestones and retainer terms for the redesign engagement.",
-    projectId: "verdant-redesign",
-    assignee: "ce",
-    estimate: 12,
-    factor: 1.05,
-    start: d(2026, 3, 2),
-    end: d(2026, 3, 13),
     priority: "High",
-    tag: "Scoping",
+    tag: "Out of scope",
     status: "Done",
     kind: "pm",
   },
   {
-    id: "t-pm-2",
-    name: "Halyard kickoff & scoping",
-    description: "Kickoff workshop, scope note and delivery plan for the onboarding flow.",
-    projectId: "halyard-onboarding",
-    assignee: "ce",
-    estimate: 14,
-    factor: 1.1,
-    start: d(2026, 4, 6),
-    end: d(2026, 4, 24),
-    priority: "High",
-    tag: "Scoping",
-    status: "Done",
-    kind: "pm",
-  },
-  {
-    id: "t-pm-3",
-    name: "Weekly client reviews — Verdant",
-    description: "Recurring review with Verdant's product lead, notes and follow-ups.",
-    projectId: "verdant-redesign",
-    assignee: "ce",
-    estimate: 24,
-    factor: 0.98,
-    start: d(2026, 3, 16),
-    end: d(2026, 8, 28),
+    id: "rm-vendor-wrapup",
+    name: "Vendor onboarding coordination — wrap-up",
+    description: "Closing checklist and handover of the vendor onboarding stream.",
+    projectId: "retail-migration",
+    assignee: "ec",
+    estimate: 5,
+    createdAt: d(2026, 7, 27),
+    start: d(2026, 9, 7),
+    end: d(2026, 9, 8),
     priority: "Medium",
-    tag: "Client",
-    status: "In Progress",
-    kind: "pm",
-  },
-  {
-    id: "t-pm-4",
-    name: "Compliance audit scope note",
-    description: "Fixed-scope definition and rate setup for the audit trail sub-project.",
-    projectId: "halyard-compliance",
-    assignee: "ce",
-    estimate: 8,
-    factor: 1.02,
-    start: d(2026, 7, 1),
-    end: d(2026, 7, 10),
-    priority: "High",
-    tag: "Scoping",
-    status: "Done",
-    kind: "pm",
-  },
-  {
-    id: "t-pm-5",
-    name: "Backlog grooming & delivery follow-up",
-    description: "Keep both client backlogs current; unblock the team week to week.",
-    projectId: "halyard-onboarding",
-    assignee: "ce",
-    estimate: 16,
-    factor: 1.0,
-    start: d(2026, 5, 4),
-    end: d(2026, 8, 28),
-    priority: "Medium",
-    tag: "Delivery",
-    status: "In Progress",
-    kind: "pm",
-  },
-  {
-    id: "t-pm-6",
-    name: "Q3 renewal proposal — Verdant",
-    description: "Prepare the retainer renewal proposal for September onwards.",
-    projectId: "verdant-redesign",
-    assignee: "ce",
-    estimate: 6,
-    factor: 0.6,
-    start: d(2026, 8, 24),
-    end: d(2026, 9, 4),
-    priority: "High",
-    tag: "Client",
+    tag: "Coordination",
     status: "Todo",
     kind: "pm",
   },
 
-  /* ---- Ongoing buckets (absorb remaining weekly capacity) ---- */
+  /* --- Internal Tools Rollout (Bramwell Logistics) ------------------ */
   {
-    id: "t-flex-tn-verdant",
-    name: "Design QA & iterations — Verdant",
-    description: "Ongoing design QA, spec updates and iteration on shipped screens.",
-    projectId: "verdant-redesign",
-    assignee: "tn",
-    estimate: 0,
-    factor: 1,
-    start: d(2026, 3, 2),
-    end: d(2026, 9, 30),
+    id: "it-requirements",
+    name: "Requirements gathering workshops",
+    description: "Requirement sessions with warehouse, dispatch and finance teams.",
+    projectId: "internal-tools",
+    assignee: "ec",
+    estimate: 8,
+    createdAt: d(2026, 8, 10),
+    start: d(2026, 8, 10),
+    end: d(2026, 8, 11),
     priority: "Medium",
-    tag: "Design QA",
-    status: "In Progress",
-    kind: "ongoing",
-    flex: true,
+    tag: "Workshop",
+    status: "Done",
+    kind: "pm",
   },
   {
-    id: "t-flex-tn-halyard",
-    name: "Design QA & iterations — Halyard",
-    description: "Ongoing polish and handoff support on the onboarding flow.",
-    projectId: "halyard-onboarding",
-    assignee: "tn",
-    estimate: 0,
-    factor: 1,
-    start: d(2026, 6, 1),
-    end: d(2026, 9, 30),
+    id: "it-change-mgmt",
+    name: "Change management plan",
+    description: "Adoption plan, comms and training path for the internal rollout.",
+    projectId: "internal-tools",
+    assignee: "ec",
+    estimate: 6,
+    createdAt: d(2026, 8, 10),
+    start: d(2026, 8, 31),
+    end: d(2026, 9, 4),
     priority: "Medium",
-    tag: "Design QA",
+    tag: "Planning",
     status: "In Progress",
-    kind: "ongoing",
-    flex: true,
+    kind: "pm",
   },
   {
-    id: "t-flex-ao-verdant",
-    name: "Implementation & bugfixes — Verdant",
-    description: "Ongoing implementation, code review and bugfixing on the redesign.",
-    projectId: "verdant-redesign",
-    assignee: "ao",
-    estimate: 0,
-    factor: 1,
-    start: d(2026, 3, 2),
-    end: d(2026, 9, 30),
-    priority: "Medium",
-    tag: "Engineering",
-    status: "In Progress",
-    kind: "ongoing",
-    flex: true,
-  },
-  {
-    id: "t-flex-ao-halyard",
-    name: "Implementation & bugfixes — Halyard",
-    description: "Ongoing implementation and bugfixing on the onboarding flow.",
-    projectId: "halyard-onboarding",
-    assignee: "ao",
-    estimate: 0,
-    factor: 1,
-    start: d(2026, 6, 1),
-    end: d(2026, 9, 30),
-    priority: "Medium",
-    tag: "Engineering",
-    status: "In Progress",
-    kind: "ongoing",
-    flex: true,
-  },
-  {
-    id: "t-flex-ce-verdant",
-    name: "Client relationship & reporting — Verdant",
-    description: "Ongoing account management, status reporting and invoicing prep.",
-    projectId: "verdant-redesign",
-    assignee: "ce",
-    estimate: 0,
-    factor: 1,
-    start: d(2026, 3, 2),
-    end: d(2026, 9, 30),
-    priority: "Medium",
-    tag: "Client",
-    status: "In Progress",
-    kind: "ongoing",
-    flex: true,
-  },
-  {
-    id: "t-flex-ce-halyard",
-    name: "Client relationship & reporting — Halyard",
-    description: "Ongoing account management and reporting on both Halyard projects.",
-    projectId: "halyard-onboarding",
-    assignee: "ce",
-    estimate: 0,
-    factor: 1,
-    start: d(2026, 6, 1),
-    end: d(2026, 9, 30),
-    priority: "Medium",
-    tag: "Client",
-    status: "In Progress",
-    kind: "ongoing",
-    flex: true,
-  },
-  {
-    id: "t-internal-ce",
-    name: "Studio ops, sales calls & admin",
-    description: "Business development, prospect calls, invoicing, tooling and hiring.",
-    projectId: "studio-internal",
-    assignee: "ce",
-    estimate: 0,
-    factor: 1,
-    start: d(2026, 3, 2),
-    end: d(2026, 9, 30),
-    priority: "Medium",
-    tag: "Internal",
-    status: "In Progress",
-    kind: "ongoing",
-    flex: true,
-  },
-  {
-    id: "t-internal-tn",
-    name: "Studio brand & internal design",
-    description: "Studio website, proposals and internal design chores.",
-    projectId: "studio-internal",
-    assignee: "tn",
-    estimate: 0,
-    factor: 1,
-    start: d(2026, 3, 2),
-    end: d(2026, 9, 30),
+    id: "it-governance",
+    name: "Status reporting & governance",
+    description: "Weekly status pack and steering committee governance.",
+    projectId: "internal-tools",
+    assignee: "ec",
+    estimate: 4,
+    createdAt: d(2026, 8, 10),
+    start: d(2026, 9, 2),
+    end: d(2026, 9, 2),
     priority: "Low",
-    tag: "Internal",
-    status: "In Progress",
-    kind: "ongoing",
-    flex: true,
+    tag: "Governance",
+    status: "Done",
+    kind: "pm",
   },
   {
-    id: "t-internal-ao",
-    name: "Studio tooling & tech radar",
-    description: "Internal tooling, CI upkeep and technical pre-sales support.",
-    projectId: "studio-internal",
-    assignee: "ao",
-    estimate: 0,
-    factor: 1,
-    start: d(2026, 3, 2),
-    end: d(2026, 9, 30),
-    priority: "Low",
-    tag: "Internal",
-    status: "In Progress",
-    kind: "ongoing",
-    flex: true,
+    id: "it-uat",
+    name: "UAT coordination",
+    description: "Coordinating user acceptance testing across the pilot teams.",
+    projectId: "internal-tools",
+    assignee: "ec",
+    estimate: 6,
+    createdAt: d(2026, 8, 10),
+    start: d(2026, 9, 7),
+    end: d(2026, 9, 9),
+    priority: "High",
+    tag: "Coordination",
+    status: "Todo",
+    kind: "pm",
+  },
+  {
+    id: "it-training",
+    name: "Training session planning",
+    description: "Planning the rollout training sessions and materials.",
+    projectId: "internal-tools",
+    assignee: "ec",
+    estimate: 4,
+    createdAt: d(2026, 8, 10),
+    start: d(2026, 9, 10),
+    end: d(2026, 9, 10),
+    priority: "Medium",
+    tag: "Planning",
+    status: "Todo",
+    kind: "pm",
+  },
+
+  /* --- Vendor Selection Program (Solène Cosmetics) ------------------ */
+  {
+    id: "vs-kickoff",
+    name: "Kickoff workshop & scope alignment",
+    description: "Kickoff with Solène Cosmetics: scope, criteria and timeline.",
+    projectId: "vendor-selection",
+    assignee: "ec",
+    estimate: 4,
+    createdAt: d(2026, 8, 31),
+    start: d(2026, 8, 31),
+    end: d(2026, 8, 31),
+    priority: "High",
+    tag: "Workshop",
+    status: "Done",
+    kind: "pm",
+  },
+  {
+    id: "vs-rfp",
+    name: "RFP review coordination",
+    description: "Reviewing vendor RFP responses with the client team.",
+    projectId: "vendor-selection",
+    assignee: "ec",
+    estimate: 6,
+    createdAt: d(2026, 8, 31),
+    start: d(2026, 9, 7),
+    end: d(2026, 9, 8),
+    priority: "Medium",
+    tag: "Coordination",
+    status: "Todo",
+    kind: "pm",
+  },
+  {
+    id: "vs-shortlist",
+    name: "Vendor shortlist review meeting",
+    description: "Shortlist review and decision meeting with the steering group.",
+    projectId: "vendor-selection",
+    assignee: "ec",
+    estimate: 3,
+    createdAt: d(2026, 8, 31),
+    start: d(2026, 9, 9),
+    end: d(2026, 9, 9),
+    priority: "Medium",
+    tag: "Workshop",
+    status: "Todo",
+    kind: "pm",
   },
 ];
 
+const taskSeedById = (id: string) => taskSeeds.find((t) => t.id === id)!;
+
 /* ------------------------------------------------------------------ */
-/* Time entry generation                                               */
+/* Time entries — logged (past only) and planned (future only)         */
 /* ------------------------------------------------------------------ */
 
 export type TimeEntry = {
@@ -888,324 +447,96 @@ export type TimeEntry = {
   projectId: string | null;
   tag: string | null;
   billable: boolean;
-  /** Revenue actually invoiceable given the project rate's effective-from date. */
+  /** true = planned block (future), false = logged time. */
+  planned: boolean;
   revenue: number;
 };
 
-const weeks: Date[] = (() => {
-  const out: Date[] = [];
-  let w = mondayOf(WINDOW_START); // Mon Feb 23 -> start at Mar 2
-  if (w < WINDOW_START) w = addDays(w, 7);
-  while (w <= WINDOW_END) {
-    out.push(w);
-    w = addDays(w, 7);
-  }
-  return out;
-})();
+type EntrySeed = [taskId: string, date: Date, start: number, duration: number, description: string];
 
-const CURRENT_WEEK_KEY = iso(CURRENT_WEEK_START);
-const LAST_FULL_WEEK_KEY = iso(addDays(CURRENT_WEEK_START, -7)); // Aug 24
+/** Logged entries — every one ends strictly before Wed Sep 2 2026, 14:00. */
+const loggedSeeds: EntrySeed[] = [
+  // Weeks before the visible window (roll-up history for already-started tasks)
+  ["rm-roadmap", d(2026, 7, 28), 9, 3, "Migration roadmap — drafting phases"],
+  ["rm-roadmap", d(2026, 7, 29), 9.5, 3, "Migration roadmap — review with client"],
+  ["rm-workshops", d(2026, 8, 4), 9, 4, "Stakeholder workshop — retail ops"],
+  ["rm-workshops", d(2026, 8, 5), 14, 3, "Stakeholder workshop — IT & vendor"],
+  ["rm-workshops", d(2026, 8, 12), 10, 3, "Stakeholder workshop — follow-ups"],
+  ["rm-vendor-onboarding", d(2026, 8, 19), 9.5, 2.5, "Vendor onboarding — access & setup"],
+  ["rm-vendor-onboarding", d(2026, 8, 20), 14, 2.5, "Vendor onboarding — checkpoint call"],
+  ["it-requirements", d(2026, 8, 10), 9, 4, "Requirements workshop — warehouse & dispatch"],
+  ["it-requirements", d(2026, 8, 11), 9.5, 4, "Requirements workshop — finance"],
 
-/** Working days available in a given week (Mon..Fri offsets). */
-function weekdaysOf(weekStart: Date): number[] {
-  const key = iso(weekStart);
-  if (key === CURRENT_WEEK_KEY) return [0, 1, 2]; // Mon-Wed logged (today = Wed Sep 30)
-  if (key === LAST_FULL_WEEK_KEY) return [0, 1, 2, 3]; // partial week Sep 21-24
-  return [0, 1, 2, 3, 4];
-}
+  // Current week — Monday Aug 31 (fully logged)
+  ["vs-kickoff", d(2026, 8, 31), 9, 4, "Kickoff workshop — scope alignment"],
+  ["it-change-mgmt", d(2026, 8, 31), 14, 3, "Change management plan — adoption path"],
+  ["rm-vendor-onboarding", d(2026, 8, 31), 17, 1.5, "Vendor onboarding — delivery checkpoint"],
 
-/** Weekly capacity ratio per member per month — the workload story. */
-const ratioByMonth: Record<string, Record<string, number>> = {
-  ce: {
-    "2026-03": 1.13,
-    "2026-04": 0.88,
-    "2026-05": 0.97,
-    "2026-06": 0.9,
-    "2026-07": 0.65,
-    "2026-08": 0.95,
-    "2026-09": 0.8,
-  },
-  tn: {
-    "2026-03": 1.26,
-    "2026-04": 1.13,
-    "2026-05": 1.2,
-    "2026-06": 1.33,
-    "2026-07": 1.1,
-    "2026-08": 1.48,
-    "2026-09": 1.22,
-  },
-  ao: {
-    "2026-03": 1.16,
-    "2026-04": 1.0,
-    "2026-05": 1.04,
-    "2026-06": 1.15,
-    "2026-07": 1.02,
-    "2026-08": 1.2,
-    "2026-09": 1.06,
-  },
-};
+  // Current week — Tuesday Sep 1 (fully logged)
+  ["rm-vendor-onboarding", d(2026, 9, 1), 9, 1.5, "Vendor onboarding — escalation follow-up"],
+  ["rm-shipment-comms", d(2026, 9, 1), 10.5, 3, "Shipment delay — comms plan & client update"],
+  ["it-change-mgmt", d(2026, 9, 1), 14, 2.5, "Change management plan — training path"],
 
-/** Internal (non-billable) load multiplier per month — drives the margin trend. */
-const internalBumpByMonth: Record<string, number> = {
-  "2026-03": 0.55,
-  "2026-04": 0.6,
-  "2026-05": 1.9,
-  "2026-06": 1.35,
-  "2026-07": 1.65,
-  "2026-08": 1.75,
-  "2026-09": 1.6,
-};
-
-/** Non-billable, untagged "general / misc" time — small but real and growing. */
-const miscByMonth: Record<string, number> = {
-  "2026-03": 0.5,
-  "2026-04": 0.6,
-  "2026-05": 0.75,
-  "2026-06": 0.85,
-  "2026-07": 1.0,
-  "2026-08": 1.15,
-  "2026-09": 1.25,
-};
-
-const miscDescriptions = [
-  "General — inbox and misc admin",
-  "Misc — unsorted",
-  "General — reading & research",
-  "Misc — team sync",
+  // Current week — Wednesday Sep 2, morning only (before "now")
+  ["it-governance", d(2026, 9, 2), 8, 2, "Status pack — weekly reporting"],
+  ["rm-escalation-call", d(2026, 9, 2), 10, 1.5, "Client escalation call — Meridian leadership"],
+  ["it-governance", d(2026, 9, 2), 12, 2, "Governance — steering committee prep"],
 ];
 
-const descriptionsFor = (task: TaskSeed) => {
-  switch (task.kind) {
-    case "integration":
-      return [
-        `${task.name} — provider docs & setup`,
-        `${task.name} — debugging sandbox`,
-        `${task.name} — call with third-party support`,
-        `${task.name} — retry & error handling`,
-        `${task.name} — sync with client's team`,
-      ];
-    case "feature":
-      return [
-        `${task.name} — implementation`,
-        `${task.name} — states & edge cases`,
-        `${task.name} — tests`,
-        `${task.name} — review fixes`,
-      ];
-    case "design":
-      return [
-        `${task.name} — exploration`,
-        `${task.name} — iteration`,
-        `${task.name} — spec & handoff`,
-        `${task.name} — review with client`,
-      ];
-    case "pm":
-      return [
-        `${task.name} — client call`,
-        `${task.name} — notes & follow-ups`,
-        `${task.name} — preparation`,
-      ];
-    default:
-      return [task.name];
-  }
-};
+/** Planned blocks — future only (Thu Sep 3 onwards). Never counted as tracked time. */
+const plannedSeeds: EntrySeed[] = [
+  // Next week — Retail Platform Migration
+  ["rm-vendor-wrapup", d(2026, 9, 7), 9, 3, "Vendor onboarding wrap-up — closing checklist"],
+  ["rm-vendor-wrapup", d(2026, 9, 8), 9, 2, "Vendor onboarding wrap-up — handover"],
+  // Next week — Internal Tools Rollout
+  ["it-uat", d(2026, 9, 7), 14, 2, "UAT coordination — test plan"],
+  ["it-uat", d(2026, 9, 8), 14, 2, "UAT coordination — pilot teams"],
+  ["it-uat", d(2026, 9, 9), 9, 2, "UAT coordination — defect triage"],
+  ["it-training", d(2026, 9, 10), 9, 4, "Training session planning"],
+  // Next week — Vendor Selection Program
+  ["vs-rfp", d(2026, 9, 7), 12, 3, "RFP review coordination — responses"],
+  ["vs-rfp", d(2026, 9, 8), 11, 3, "RFP review coordination — scoring"],
+  ["vs-shortlist", d(2026, 9, 9), 14, 3, "Vendor shortlist review meeting"],
+];
 
-/** hours planned per (task, week) for the non-flex tasks. */
-const plannedTaskWeek = new Map<string, number>();
-const plannedActual = new Map<string, number>();
-
-for (const task of taskSeeds) {
-  if (task.flex) continue;
-  const actual = task.estimate * task.factor;
-  // Weekdays of the task range that fall inside the data window.
-  const perWeek = new Map<string, number>();
-  let cursor = task.start;
-  let totalDays = 0;
-  while (cursor <= task.end) {
-    const day = cursor.getUTCDay();
-    const inWindow = cursor >= WINDOW_START && cursor <= WINDOW_END;
-    if (day >= 1 && day <= 5 && inWindow) {
-      const wk = iso(mondayOf(cursor));
-      const available = weekdaysOf(mondayOf(cursor)).length;
-      const offset = day - 1;
-      if (offset < available) {
-        perWeek.set(wk, (perWeek.get(wk) ?? 0) + 1);
-        totalDays += 1;
-      }
-    }
-    cursor = addDays(cursor, 1);
-  }
-  if (!totalDays) continue;
-  let assigned = 0;
-  const entriesList = [...perWeek.entries()];
-  entriesList.forEach(([wk, days], i) => {
-    const isLast = i === entriesList.length - 1;
-    const raw = isLast ? actual - assigned : q(jitter((actual * days) / totalDays, 0.15));
-    const hours = Math.max(0, q(raw));
-    assigned += hours;
-    plannedTaskWeek.set(`${task.id}|${wk}`, hours);
-  });
-  plannedActual.set(task.id, assigned);
-}
-
-const timeEntries: TimeEntry[] = [];
 let entrySeq = 0;
-
-function pushEntries(opts: {
-  memberId: string;
-  weekStart: Date;
-  hours: number;
-  task: TaskSeed | null;
-  descriptions: string[];
-  dayCursor: Map<string, number>;
-  preferDays?: number[];
-}) {
-  const { memberId, weekStart, hours, task, descriptions, dayCursor } = opts;
-  if (hours <= 0.05) return;
-  const available = opts.preferDays ?? weekdaysOf(weekStart);
-  if (!available.length) return;
-  const chunks = Math.min(available.length, Math.max(1, Math.round(hours / 2.6)));
-  const days = [...available].sort(() => rand() - 0.5).slice(0, chunks);
-  let left = hours;
-  days.forEach((dayOffset, i) => {
-    const isLast = i === days.length - 1;
-    const raw = isLast ? left : q(jitter(hours / days.length, 0.3));
-    const dur = Math.max(0.25, Math.min(left, q(raw)));
-    left = q(left - dur);
-    if (dur <= 0) return;
-    const date = addDays(weekStart, dayOffset);
-    const key = `${memberId}|${iso(date)}`;
-    const start = dayCursor.get(key) ?? 9 + Math.round(rand() * 2) * 0.25;
-    const end = start + dur;
-    dayCursor.set(key, end + 0.25);
-    const seed = seedProject(task);
-    const billable = Boolean(seed?.billableProject) && Boolean(task && task.kind !== "ongoing" ? true : seed?.billableProject);
-    const covered =
-      billable &&
-      seed?.rate != null &&
-      seed.rateEffectiveFrom != null &&
-      date >= seed.rateEffectiveFrom;
-    timeEntries.push({
-      id: `e${++entrySeq}`,
-      date: iso(date),
-      start,
-      end,
-      duration: dur,
-      description: descriptions[Math.floor(rand() * descriptions.length)] ?? "Work",
-      memberId,
-      taskId: task ? task.id : null,
-      projectId: seed ? seed.id : null,
-      tag: task ? task.tag : null,
-      billable,
-      revenue: covered ? dur * (seed!.rate as number) : 0,
-    });
-  });
+function buildEntry(seed: EntrySeed, planned: boolean): TimeEntry {
+  const [taskId, date, start, duration, description] = seed;
+  const task = taskSeedById(taskId);
+  const project = seedById(task.projectId);
+  const billable = project.billableProject;
+  const covered =
+    billable &&
+    project.rate != null &&
+    project.rateEffectiveFrom != null &&
+    date >= project.rateEffectiveFrom;
+  return {
+    id: `${planned ? "p" : "e"}${++entrySeq}`,
+    date: iso(date),
+    start,
+    end: start + duration,
+    duration,
+    description,
+    memberId: "ec",
+    taskId,
+    projectId: project.id,
+    tag: task.tag,
+    billable,
+    planned,
+    revenue: !planned && covered ? duration * (project.rate as number) : 0,
+  };
 }
 
-function seedProject(task: TaskSeed | null) {
-  if (!task) return null;
-  return seedById(task.projectId);
-}
+const byDate = (a: TimeEntry, b: TimeEntry) =>
+  a.date < b.date ? -1 : a.date > b.date ? 1 : a.start - b.start;
 
-const dayCursor = new Map<string, number>();
+const timeEntries: TimeEntry[] = loggedSeeds
+  .map((s) => buildEntry(s, false))
+  .sort(byDate);
 
-for (const weekStart of weeks) {
-  const mk = monthKey(weekStart);
-  const availableDays = weekdaysOf(weekStart).length;
-  const dayFactor = availableDays / 5;
-
-  for (const member of teamMembers) {
-    // 1. story tasks planned this week
-    const memberTasks = taskSeeds.filter((t) => t.assignee === member.id);
-    let plannedTotal = 0;
-    for (const task of memberTasks) {
-      if (task.flex) continue;
-      const hours = plannedTaskWeek.get(`${task.id}|${iso(weekStart)}`) ?? 0;
-      if (hours > 0) {
-        plannedTotal += hours;
-        pushEntries({
-          memberId: member.id,
-          weekStart,
-          hours,
-          task,
-          descriptions: descriptionsFor(task),
-          dayCursor,
-        });
-      }
-    }
-
-    // 2. target for the week
-    const ratio = ratioByMonth[member.id]?.[mk] ?? 1;
-    const target = q(jitter(member.capacity * ratio * dayFactor, 0.06));
-
-    // 3. internal (non-billable) studio time
-    const internalShare = member.id === "ce" ? 0.2 : 0.06;
-    const internalBump = internalBumpByMonth[mk] ?? 1;
-    const internalHours = q(
-      Math.min(target * 0.5, jitter(target * internalShare * internalBump, 0.25)),
-    );
-    const internalTask = taskSeeds.find(
-      (t) => t.projectId === "studio-internal" && t.assignee === member.id,
-    )!;
-    pushEntries({
-      memberId: member.id,
-      weekStart,
-      hours: internalHours,
-      task: internalTask,
-      descriptions: [
-        "Business development & prospect calls",
-        "Studio admin & invoicing",
-        "Internal tooling",
-        "Team planning",
-      ],
-      dayCursor,
-    });
-
-    // 4. a little untagged "general / misc" time, growing over the months
-    if (rand() > 0.35) {
-      const miscHours = q(Math.max(0.25, jitter(miscByMonth[mk] ?? 0.5, 0.4)) * dayFactor);
-      pushEntries({
-        memberId: member.id,
-        weekStart,
-        hours: miscHours,
-        task: null,
-        descriptions: miscDescriptions,
-        dayCursor,
-      });
-      plannedTotal += miscHours;
-    }
-
-    // 5. remaining capacity goes to the ongoing client buckets
-    const remaining = q(target - plannedTotal - internalHours);
-    if (remaining > 0.25) {
-      const flex = memberTasks.filter(
-        (t) =>
-          t.flex &&
-          t.projectId !== "studio-internal" &&
-          weekStart >= mondayOf(t.start) &&
-          weekStart <= t.end,
-      );
-      if (flex.length) {
-        const weights = flex.map((t) =>
-          t.projectId === "verdant-redesign" ? 0.55 : 0.45,
-        );
-        const sum = weights.reduce((s, v) => s + v, 0);
-        flex.forEach((task, i) => {
-          const hours = q((remaining * (weights[i] ?? 1)) / sum);
-          pushEntries({
-            memberId: member.id,
-            weekStart,
-            hours,
-            task,
-            descriptions: descriptionsFor(task).concat([task.name]),
-            dayCursor,
-          });
-        });
-      }
-    }
-  }
-}
-
-timeEntries.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : a.start - b.start));
+export const plannedEntries: TimeEntry[] = plannedSeeds
+  .map((s) => buildEntry(s, true))
+  .sort(byDate);
 
 export { timeEntries };
 
@@ -1214,11 +545,14 @@ export { timeEntries };
 /* ------------------------------------------------------------------ */
 
 const trackedByTask = new Map<string, number>();
-const entriesByTask = new Map<string, number>();
+const plannedByTask = new Map<string, number>();
 for (const e of timeEntries) {
   if (!e.taskId) continue;
   trackedByTask.set(e.taskId, (trackedByTask.get(e.taskId) ?? 0) + e.duration);
-  entriesByTask.set(e.taskId, (entriesByTask.get(e.taskId) ?? 0) + 1);
+}
+for (const e of plannedEntries) {
+  if (!e.taskId) continue;
+  plannedByTask.set(e.taskId, (plannedByTask.get(e.taskId) ?? 0) + e.duration);
 }
 
 export type Task = {
@@ -1231,13 +565,16 @@ export type Task = {
   dates: string;
   startDate: string;
   endDate: string;
-  estimateHours: number;
+  createdAt: string;
+  /** null = no estimate at all (not zero). */
+  estimateHours: number | null;
   estimate: string;
   tracked: number;
-  /** tracked - estimate, in hours (positive = over estimate). */
-  delta: number;
-  /** tracked / estimate (1 = on target). */
-  ratio: number;
+  plannedHours: number;
+  /** tracked - estimate, in hours (positive = over estimate); null without estimate. */
+  delta: number | null;
+  /** tracked / estimate (1 = on target); null without estimate. */
+  ratio: number | null;
   priority: Priority;
   tag: string | null;
   status: TaskStatus;
@@ -1247,9 +584,9 @@ export type Task = {
 
 export const tasks: Task[] = taskSeeds.map((t) => {
   const tracked = q(trackedByTask.get(t.id) ?? 0);
-  // Ongoing buckets are re-estimated from their real load (they look on target).
-  const estimateHours = t.flex ? q(Math.max(1, tracked / 1.03)) : t.estimate;
+  const plannedHours = q(plannedByTask.get(t.id) ?? 0);
   const seed = seedById(t.projectId);
+  const estimateHours = t.estimate;
   return {
     id: t.id,
     name: t.name,
@@ -1263,11 +600,13 @@ export const tasks: Task[] = taskSeeds.map((t) => {
         : `${shortDate(t.start)} - ${shortDate(t.end)}`,
     startDate: iso(t.start),
     endDate: iso(t.end),
+    createdAt: iso(t.createdAt),
     estimateHours,
-    estimate: formatHours(estimateHours),
+    estimate: estimateHours == null ? "—" : formatHours(estimateHours),
     tracked,
-    delta: q(tracked - estimateHours),
-    ratio: estimateHours ? tracked / estimateHours : 0,
+    plannedHours,
+    delta: estimateHours == null ? null : q(tracked - estimateHours),
+    ratio: estimateHours == null ? null : tracked / estimateHours,
     priority: t.priority,
     tag: t.tag,
     status: t.status,
@@ -1291,6 +630,7 @@ export type Project = {
   color: ProjectColor;
   tracked: number;
   billable: number;
+  plannedHours: number;
   /** Billable hours that no active rate covered when they were logged. */
   uncoveredHours: number;
   revenue: number;
@@ -1321,6 +661,9 @@ export const projects: Project[] = projectSeeds.map((p) => {
     color: p.color,
     tracked: q(tracked),
     billable: q(billable),
+    plannedHours: q(
+      plannedEntries.filter((e) => e.projectId === p.id).reduce((s, e) => s + e.duration, 0),
+    ),
     uncoveredHours: q(uncovered),
     revenue,
     cost,
@@ -1337,7 +680,7 @@ export const projects: Project[] = projectSeeds.map((p) => {
 
 export const projectById = (id: string) => projects.find((p) => p.id === id);
 
-export const clients = ["Verdant Health", "Halyard Finance"];
+export const clients = ["Meridian Retail", "Bramwell Logistics", "Solène Cosmetics"];
 
 /* ------------------------------------------------------------------ */
 /* Derived: totals, month trend, per-member stats                      */
@@ -1363,7 +706,7 @@ export const totals = {
   profit: totalRevenue - totalCost,
   margin: totalRevenue ? ((totalRevenue - totalCost) / totalRevenue) * 100 : 0,
   amount: money(totalRevenue),
-  avgPerDay: formatHours(totalTracked / Math.max(workingDays * teamMembers.length, 1)),
+  avgPerDay: formatHours(totalTracked / Math.max(workingDays, 1)),
 };
 
 export type MonthStat = {
@@ -1377,7 +720,7 @@ export type MonthStat = {
   marginPct: number;
 };
 
-const monthKeys = ["2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"];
+const monthKeys = ["2026-07", "2026-08", "2026-09"];
 const monthLabel = (key: string) => `${MONTH_ABBR[Number(key.slice(5)) - 1] ?? ""} 2026`;
 
 export const monthlyStats: MonthStat[] = monthKeys.map((key) => {
@@ -1418,11 +761,14 @@ export const monthlyStatsByProject = projects.map((p) => ({
   }),
 }));
 
+const weeks: Date[] = [CURRENT_WEEK_START, NEXT_WEEK_START];
+
 export type MemberWeek = {
   memberId: string;
   weekStart: string;
   tracked: number;
   billable: number;
+  planned: number;
   capacity: number;
   ratio: number;
 };
@@ -1440,6 +786,11 @@ export const memberWeeks: MemberWeek[] = weeks.flatMap((w) => {
       weekStart: from,
       tracked: q(tracked),
       billable: q(rows.filter((e) => e.billable).reduce((s, e) => s + e.duration, 0)),
+      planned: q(
+        plannedEntries
+          .filter((e) => e.memberId === m.id && e.date >= from && e.date <= to)
+          .reduce((s, e) => s + e.duration, 0),
+      ),
       capacity: m.capacity,
       ratio: tracked / m.capacity,
     };
@@ -1452,10 +803,11 @@ export const memberMonths = teamMembers.flatMap((m) =>
       (e) => e.memberId === m.id && e.date.startsWith(key),
     );
     const tracked = rows.reduce((s, e) => s + e.duration, 0);
-    const weeksInMonth = memberWeeks.filter(
-      (w) => w.memberId === m.id && w.weekStart.startsWith(key),
-    ).length;
-    const capacity = m.capacity * Math.max(weeksInMonth, 1);
+    const weeksInMonth = Math.max(
+      1,
+      new Set(rows.map((e) => iso(mondayOf(new Date(`${e.date}T00:00:00Z`))))).size,
+    );
+    const capacity = m.capacity * weeksInMonth;
     return {
       memberId: m.id,
       key,
@@ -1482,12 +834,12 @@ export const memberStats = teamMembers.map((m) => {
   };
 });
 
-/** Members table rows (shape kept from the previous dataset). */
+/** Members table rows. */
 export const members = memberStats.map((m) => ({
   name: m.name,
   initials: m.initials,
   email: m.email,
-  role: m.id === "ce" ? "Administrator" : "Member",
+  role: "Administrator",
   jobTitle: m.role,
   groups: m.groups,
   status: m.status,
@@ -1524,18 +876,14 @@ export type CalendarEvent = {
   duration: string;
   color: ProjectColor;
   billable?: boolean;
+  planned?: boolean;
   lane?: 0 | 1;
 };
 
-export const calendarEvents: CalendarEvent[] = timeEntries
-  .filter(
-    (e) => e.memberId === currentUser.id && e.date >= weekFrom && e.date <= weekTo,
-  )
-  .map((e) => {
+function toEvents(rows: TimeEntry[], start: Date): CalendarEvent[] {
+  return rows.map((e) => {
     const project = e.projectId ? projectById(e.projectId) : null;
-    const day = Math.round(
-      (Date.parse(e.date) - CURRENT_WEEK_START.getTime()) / (24 * 3600 * 1000),
-    );
+    const day = Math.round((Date.parse(e.date) - start.getTime()) / (24 * 3600 * 1000));
     return {
       id: e.id,
       day,
@@ -1546,8 +894,22 @@ export const calendarEvents: CalendarEvent[] = timeEntries
       duration: formatHours(e.duration),
       color: project?.color ?? "pink",
       billable: e.billable,
+      planned: e.planned,
     };
   });
+}
+
+export const calendarEvents: CalendarEvent[] = toEvents(
+  [
+    ...timeEntries.filter(
+      (e) => e.memberId === currentUser.id && e.date >= weekFrom && e.date <= weekTo,
+    ),
+    ...plannedEntries.filter(
+      (e) => e.memberId === currentUser.id && e.date >= weekFrom && e.date <= weekTo,
+    ),
+  ],
+  CURRENT_WEEK_START,
+);
 
 const currentWeekEntries = timeEntries.filter(
   (e) => e.memberId === currentUser.id && e.date >= weekFrom && e.date <= weekTo,
@@ -1578,7 +940,7 @@ export const weekSummary = {
 /* Derived: reports                                                    */
 /* ------------------------------------------------------------------ */
 
-export const workloadTarget = 7; // daily target for a 35h week (current user)
+export const workloadTarget = 7; // daily target for a 35h week
 
 export const workloadDays = Array.from({ length: 5 }, (_, i) => {
   const date = addDays(CURRENT_WEEK_START, i);
@@ -1602,13 +964,15 @@ export const profitability = {
   margin: `${totals.margin.toFixed(1)} %`,
   uncoveredHours,
   uncoveredLabel: `${formatHours(uncoveredHours)} logged as billable before any rate was active`,
-  uncoveredProjects: [...new Set(uncoveredEntries.map((e) => projectById(e.projectId!)!.name))],
+  uncoveredProjects: [
+    ...new Set(uncoveredEntries.map((e) => projectById(e.projectId!)?.name ?? "—")),
+  ],
   nonBillableProjects: projects.filter((p) => !p.billableProject).map((p) => p.name),
   months: monthlyStats,
 };
 
 export const utilization = {
-  billableShare: Math.round((totalBillable / totalTracked) * 100),
+  billableShare: totalTracked ? Math.round((totalBillable / totalTracked) * 100) : 0,
   target: 60,
   rows: memberStats.map((m) => ({
     member: m.name,
@@ -1635,45 +999,43 @@ export const timeLogs = [...timeEntries]
 /* Ask Toggl overlay (static conversation, values from the dataset)    */
 /* ------------------------------------------------------------------ */
 
-const augStats = monthlyStats.find((m) => m.key === "2026-08")!;
-const aprStats = monthlyStats.find((m) => m.key === "2026-04")!;
+const thisWeekByProject = projects.map((p) => {
+  const rows = currentWeekEntries.filter((e) => e.projectId === p.id);
+  return {
+    project: p,
+    tracked: q(rows.reduce((s, e) => s + e.duration, 0)),
+    revenue: rows.reduce((s, e) => s + e.revenue, 0),
+  };
+});
 
 export const askConversation = [
   {
     role: "user" as const,
-    text: "How is Studio North doing this month compared to the start of the engagement?",
+    text: "How is my week going across the three client engagements?",
   },
   {
     role: "assistant" as const,
-    text: `In August the studio tracked ${formatHours(augStats.tracked)} across three client projects and internal work, for ${money(
-      augStats.revenue,
-    )} of invoiceable revenue.`,
+    text: `So far this week you tracked ${formatHours(currentWeekTracked)} across three billable engagements, for ${money(
+      currentWeekRevenue,
+    )} of invoiceable time.`,
     table: {
-      head: ["Month", "Tracked", "Revenue", "Contribution margin"],
-      rows: [
-        [
-          aprStats.label,
-          formatHours(aprStats.tracked),
-          money(aprStats.revenue),
-          money(aprStats.margin),
-        ],
-        ...monthlyStats
-          .filter((m) => ["2026-05", "2026-06", "2026-07", "2026-08"].includes(m.key))
-          .map((m) => [
-            m.label,
-            formatHours(m.tracked),
-            money(m.revenue),
-            money(m.margin),
-          ]),
-      ],
+      head: ["Project", "Client", "Tracked", "Amount"],
+      rows: thisWeekByProject.map((r) => [
+        r.project.name,
+        r.project.client ?? "—",
+        formatHours(r.tracked),
+        money(r.revenue),
+      ]),
     },
     takeaways: [
-      `${formatHours(uncoveredHours)} of billable time carries no revenue because a project rate was activated after the work happened.`,
-      `Billable share across the workspace is ${utilization.billableShare} %, against a ${utilization.target} % target.`,
+      `Billable share is ${utilization.billableShare} % of tracked time, against a ${utilization.target} % target.`,
+      `Next week is planned only: ${formatHours(
+        plannedEntries.reduce((s, e) => s + e.duration, 0),
+      )} of scheduled work, nothing logged yet.`,
     ],
     actions: [
-      "Review Halyard Finance — Onboarding Flow rate history",
-      "Compare weekly load per member",
+      "Review Retail Platform Migration tasks",
+      "Check next week's planned load",
     ],
   },
 ];
@@ -1699,6 +1061,9 @@ export function weekView(offset = 0) {
   const to = iso(addDays(start, 6));
   const all = timeEntries.filter((e) => e.date >= from && e.date <= to);
   const mine = all.filter((e) => e.memberId === currentUser.id);
+  const minePlanned = plannedEntries.filter(
+    (e) => e.memberId === currentUser.id && e.date >= from && e.date <= to,
+  );
 
   const days = Array.from({ length: 7 }, (_, i) => {
     const date = addDays(start, i);
@@ -1713,36 +1078,20 @@ export function weekView(offset = 0) {
     };
   });
 
-  const events: CalendarEvent[] = mine.map((e) => {
-    const project = e.projectId ? projectById(e.projectId) : null;
-    const day = Math.round((Date.parse(e.date) - start.getTime()) / (24 * 3600 * 1000));
-    return {
-      id: e.id,
-      day,
-      start: e.start,
-      end: e.end,
-      title: e.description,
-      ...(project ? { subtitle: project.name } : {}),
-      duration: formatHours(e.duration),
-      color: project?.color ?? "pink",
-      billable: e.billable,
-    };
-  });
+  const events = toEvents([...mine, ...minePlanned], start);
 
   const tracked = mine.reduce((s, e) => s + e.duration, 0);
   const billable = mine.filter((e) => e.billable).reduce((s, e) => s + e.duration, 0);
   const revenue = mine.reduce((s, e) => s + e.revenue, 0);
+  const plannedHours = minePlanned.reduce((s, e) => s + e.duration, 0);
   const capacity = currentUser.capacity ?? 35;
 
-  const teamTracked = all.reduce((s, e) => s + e.duration, 0);
-  const teamBillable = all.filter((e) => e.billable).reduce((s, e) => s + e.duration, 0);
   const teamRevenue = all.reduce((s, e) => s + e.revenue, 0);
   const teamCost = all.reduce(
     (s, e) => s + e.duration * memberById(e.memberId).costRate,
     0,
   );
   const activeDays = new Set(all.map((e) => e.date)).size;
-
   const uncovered = all.filter((e) => e.billable && e.revenue === 0);
 
   return {
@@ -1753,13 +1102,14 @@ export function weekView(offset = 0) {
     isCurrent: offset === 0,
     weekNumber: isoWeekNumber(start),
     rangeLabel: `${shortDate(start)} - ${shortDate(addDays(start, 6))} ${start.getUTCFullYear()}`,
-    weekLabel: `${offset === 0 ? "This week" : offset === -1 ? "Last week" : shortDate(start)} • W${isoWeekNumber(start)}`,
+    weekLabel: `${offset === 0 ? "This week" : offset === 1 ? "Next week" : shortDate(start)} • W${isoWeekNumber(start)}`,
     days,
     events,
     summary: {
       tracked: formatHours(tracked),
       trackedHours: q(tracked),
-      planned: formatHours(capacity),
+      planned: formatHours(plannedHours || capacity),
+      plannedHours: q(plannedHours),
       progress: Math.min(tracked / capacity, 1),
       billableHours: q(billable),
       billableShare: `${formatHours(billable)} (${Math.round((billable / Math.max(tracked, 0.01)) * 100)} %)`,
@@ -1774,15 +1124,15 @@ export function weekView(offset = 0) {
       };
     }),
     team: {
-      tracked: q(teamTracked),
-      billable: q(teamBillable),
+      tracked: q(tracked),
+      billable: q(billable),
       revenue: teamRevenue,
       cost: teamCost,
       profit: teamRevenue - teamCost,
       margin: teamRevenue ? ((teamRevenue - teamCost) / teamRevenue) * 100 : 0,
       amount: money(teamRevenue),
-      avgPerDay: formatHours(teamTracked / Math.max(activeDays * teamMembers.length, 1)),
-      billableShare: teamTracked ? Math.round((teamBillable / teamTracked) * 100) : 0,
+      avgPerDay: formatHours(tracked / Math.max(activeDays, 1)),
+      billableShare: tracked ? Math.round((billable / tracked) * 100) : 0,
       uncoveredHours: q(uncovered.reduce((s, e) => s + e.duration, 0)),
       uncoveredProjects: [
         ...new Set(uncovered.map((e) => projectById(e.projectId!)?.name ?? "—")),
@@ -1827,11 +1177,9 @@ export function weekView(offset = 0) {
 
 export type WeekView = ReturnType<typeof weekView>;
 
-/** How far back/forward navigation may go, in week offsets from the current week. */
-export const WEEK_OFFSET_MIN = Math.round(
-  (mondayOf(WINDOW_START).getTime() - CURRENT_WEEK_START.getTime()) / (7 * 24 * 3600 * 1000),
-);
-export const WEEK_OFFSET_MAX = 4;
+/** Navigation is clamped to the two-week window: current week and next week. */
+export const WEEK_OFFSET_MIN = 0;
+export const WEEK_OFFSET_MAX = 1;
 
-/** Default landing week: W36 (Aug 31 – Sep 6 2026). */
-export const DEFAULT_WEEK_OFFSET = isoWeekNumber(d(2026, 8, 31)) - isoWeekNumber(CURRENT_WEEK_START);
+/** Default landing week: W36 (Aug 31 – Sep 6 2026) — the current week. */
+export const DEFAULT_WEEK_OFFSET = 0;
