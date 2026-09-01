@@ -442,8 +442,8 @@ export function ImpactTab({ week }: { week: WeekView }) {
         </div>
       </Card>
       <ScopeCreepCard week={week} />
-      <OverrunCard />
       <CapacityCard week={week} />
+      <OverrunCard />
     </>
   );
 }
