@@ -28,6 +28,7 @@ import {
   WEEK_OFFSET_MIN,
   DEFAULT_WEEK_OFFSET,
 } from "@/data/fixtures";
+import { WeekStatusBar } from "@/components/app/WeekStatusBar";
 import { cn } from "@/lib/utils";
 
 function formatElapsed(totalSeconds: number) {
