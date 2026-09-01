@@ -13,10 +13,10 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/optimize")({
   validateSearch: (search: Record<string, unknown>) => ({
     week:
-      typeof search.week === "number" &&
-      search.week >= WEEK_OFFSET_MIN &&
-      search.week <= WEEK_OFFSET_MAX
-        ? search.week
+      typeof search["week"] === "number" &&
+      search["week"] >= WEEK_OFFSET_MIN &&
+      search["week"] <= WEEK_OFFSET_MAX
+        ? search["week"]
         : undefined,
   }),
   head: () => ({
