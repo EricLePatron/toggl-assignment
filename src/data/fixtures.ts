@@ -530,8 +530,7 @@ const plannedSeeds: EntrySeed[] = [
   ["it-doc-cleanup", d(2026, 9, 4), 17, 5, "Process documentation cleanup"],
   // Next week — Retail Platform Migration
 
-  ["rm-vendor-wrapup", d(2026, 9, 7), 9, 3, "Vendor onboarding wrap-up — closing checklist"],
-  ["rm-vendor-wrapup", d(2026, 9, 8), 9, 2, "Vendor onboarding wrap-up — handover"],
+  ["rm-vendor-wrapup", d(2026, 9, 10), 14, 5, "Vendor onboarding coordination — phase 2"],
   // Next week — Internal Tools Rollout
   ["it-uat", d(2026, 9, 7), 14, 2, "UAT coordination — test plan"],
   ["it-uat", d(2026, 9, 8), 14, 2, "UAT coordination — pilot teams"],
