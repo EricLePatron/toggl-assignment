@@ -73,6 +73,10 @@ export const workspace = {
     "You are trying 10 Premium features on this project — recurring, estimates, billing & more.",
 };
 
+/** Weekly capacity for the solo workspace owner (Eric Chollet), in hours. */
+export const WEEKLY_CAPACITY = 40;
+
+
 export type Member = {
   id: string;
   name: string;
