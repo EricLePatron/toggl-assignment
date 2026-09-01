@@ -520,7 +520,12 @@ const loggedSeeds: EntrySeed[] = [
 
 /** Planned blocks — future only (Thu Sep 3 onwards). Never counted as tracked time. */
 const plannedSeeds: EntrySeed[] = [
+  // Current week — Thursday & Friday
+  ["rm-cutover-rehearsal", d(2026, 9, 3), 9, 9, "Cutover rehearsal — dry run"],
+  ["rm-cutover-rehearsal", d(2026, 9, 4), 8, 9, "Cutover rehearsal — vendor sign-off prep"],
+  ["it-doc-cleanup", d(2026, 9, 4), 17, 5, "Process documentation cleanup"],
   // Next week — Retail Platform Migration
+
   ["rm-vendor-wrapup", d(2026, 9, 7), 9, 3, "Vendor onboarding wrap-up — closing checklist"],
   ["rm-vendor-wrapup", d(2026, 9, 8), 9, 2, "Vendor onboarding wrap-up — handover"],
   // Next week — Internal Tools Rollout
