@@ -1,11 +1,15 @@
 import { useState } from "react";
 import { AlertTriangle, CalendarClock, Clock3 } from "lucide-react";
 import {
+import {
   currentUser,
   formatHours,
   money,
   plannedEntries,
+  projectById,
+  projectColorClass,
   timeEntries,
+
   type WeekView,
 } from "@/data/fixtures";
 import { Card } from "@/components/app/primitives";
