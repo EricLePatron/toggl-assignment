@@ -329,8 +329,8 @@ function OverrunRow({ row }: { row: ReturnType<typeof overrunTasks>[number] }) {
                   Est.{" "}
                   {saved != null
                     ? formatHours(saved)
-                    : repeat.estimate != null
-                      ? formatHours(repeat.estimate)
+                    : previousEstimate != null
+                      ? formatHours(previousEstimate)
                       : "—"}
                 </span>
               </div>
@@ -387,10 +387,20 @@ function OverrunRow({ row }: { row: ReturnType<typeof overrunTasks>[number] }) {
                 </div>
               )}
               <p className="tnum pt-2 text-xs text-muted-foreground">
-                Based on the {row.overPct}% overrun observed on the same work
-                {repeat.estimate != null &&
-                  ` (${formatHours(repeat.estimate)} → ${formatHours(suggested)})`}
-                .
+                {done ? (
+                  <>
+                    Estimate changed from{" "}
+                    {done.from != null ? formatHours(done.from) : "—"} to{" "}
+                    {formatHours(done.to)}. Mocked — reloading the page resets it.
+                  </>
+                ) : (
+                  <>
+                    Based on the {row.overPct}% overrun observed on the same work
+                    {previousEstimate != null &&
+                      ` (${formatHours(previousEstimate)} → ${formatHours(suggested)})`}
+                    .
+                  </>
+                )}
               </p>
             </div>
           </div>
