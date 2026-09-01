@@ -169,6 +169,21 @@ export function committedHoursForWeek(from: string, to: string) {
   return { logged, planned, total: logged + planned };
 }
 
+export type CapacityCandidate = {
+  taskId: string;
+  taskName: string;
+  projectId: string;
+  projectName: string;
+  projectColor: import("@/data/fixtures").ProjectColor;
+  client: string | null;
+  hours: number;
+  estimate: number | null;
+  priority: import("@/data/fixtures").Priority;
+  status: import("@/data/fixtures").TaskStatus;
+  tag: string | null;
+  plannedDates: string[]; // YYYY-MM-DD blocks inside the viewed week
+};
+
 export type CapacitySignal = {
   capacity: number;
   committed: number;
@@ -177,13 +192,7 @@ export type CapacitySignal = {
   overage: number;
   scopeCreepHours: number;
   scopeCreepProjects: string[];
-  candidate: {
-    taskId: string;
-    taskName: string;
-    projectName: string;
-    client: string | null;
-    hours: number;
-  } | null;
+  candidate: CapacityCandidate | null;
   canMove: boolean;
   nextWeekTotal: number;
   nextWeekAfterMove: number;
