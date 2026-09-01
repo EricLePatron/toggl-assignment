@@ -11,6 +11,14 @@ import { OptimizeBoard } from "@/components/app/OptimizeBoard";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/optimize")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    week:
+      typeof search["week"] === "number" &&
+      search["week"] >= WEEK_OFFSET_MIN &&
+      search["week"] <= WEEK_OFFSET_MAX
+        ? search["week"]
+        : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Optimize — Focus Replica" },
@@ -33,7 +41,8 @@ export const Route = createFileRoute("/optimize")({
 });
 
 function OptimizeScreen() {
-  const [weekOffset, setWeekOffset] = useState(DEFAULT_WEEK_OFFSET);
+  const { week: weekParam } = Route.useSearch();
+  const [weekOffset, setWeekOffset] = useState(weekParam ?? DEFAULT_WEEK_OFFSET);
   const week = weekView(weekOffset);
 
   return (
