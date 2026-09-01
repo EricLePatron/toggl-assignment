@@ -289,6 +289,67 @@ function OverrunRow({ row }: { row: ReturnType<typeof overrunTasks>[number] }) {
   );
 }
 
+function CapacityCard({ week }: { week: WeekView }) {
+  const signal = capacitySignal(week);
+  if (!signal || !signal.candidate || !signal.canMove) return null;
+  const c = signal.candidate;
+
+  return (
+    <div
+      className="panel border-info/40"
+      style={{
+        backgroundColor: "color-mix(in oklab, var(--color-info) 8%, transparent)",
+      }}
+    >
+      <div className="flex items-start gap-3 px-5 py-4">
+        <CalendarClock className="size-5 shrink-0 text-info" />
+        <div>
+          <h2 className="text-base font-semibold">Your week is over capacity</h2>
+          <p className="tnum pt-0.5 text-sm text-muted-foreground">
+            Capacity {formatHours(signal.capacity)} · committed{" "}
+            <span className="font-semibold text-foreground">
+              {formatHours(signal.committed)}
+            </span>{" "}
+            ·{" "}
+            <span className="font-semibold text-info">
+              +{formatHours(signal.overage)} over
+            </span>
+          </p>
+          {signal.scopeCreepHours > 0 && (
+            <p className="tnum pt-1 text-sm text-muted-foreground">
+              {formatHours(signal.scopeCreepHours)} of that comes from this week&apos;s
+              scope creep on {signal.scopeCreepProjects.join(", ")}.
+            </p>
+          )}
+        </div>
+      </div>
+      <div className="flex items-center gap-4 border-t border-info/25 px-5 py-3 text-sm">
+        <div className="min-w-0 flex-1">
+          <div className="truncate font-medium">
+            Move “{c.taskName}” to next week
+          </div>
+          <div className="truncate text-xs text-muted-foreground">
+            {c.projectName}
+            {c.client ? ` — ${c.client}` : ""} · {formatHours(c.hours)} · not started
+            yet, no deadline this week
+          </div>
+        </div>
+        <button
+          className="pill border-info/50 text-foreground"
+          onClick={() => moveTaskToNextWeek(c.taskId, week.from)}
+        >
+          Move to next week
+        </button>
+      </div>
+      <p className="tnum px-5 pb-4 text-xs text-muted-foreground">
+        After the move: this week {formatHours(signal.committed - c.hours)}, next week{" "}
+        {formatHours(signal.nextWeekAfterMove)} — both within{" "}
+        {formatHours(signal.capacity)}.
+      </p>
+    </div>
+  );
+}
+
 export function ImpactTab({ week }: { week: WeekView }) {
   useEstimateOverrides();
   return (
@@ -307,9 +368,11 @@ export function ImpactTab({ week }: { week: WeekView }) {
       </Card>
       <ScopeCreepCard week={week} />
       <OverrunCard />
+      <CapacityCard week={week} />
     </>
   );
 }
+
 
 function formatH(h: number) {
   const hours = Math.floor(h);
