@@ -6,6 +6,7 @@ import {
   Circle,
   Clock3,
   FolderKanban,
+  MoveRight,
 } from "lucide-react";
 import {
   currentUser,
