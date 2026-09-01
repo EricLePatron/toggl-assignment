@@ -78,7 +78,7 @@ function allocationsFor(memberId: string) {
         return idx === -1 ? 6 : idx;
       })();
       const span = Math.max(1, endDay - startDay + 1);
-      const remaining = Math.max(0.5, t.estimateHours - t.tracked);
+      const remaining = Math.max(0.5, (t.estimateHours ?? t.tracked) - t.tracked);
       return {
         task: t,
         startDay,
