@@ -478,13 +478,26 @@ function CapacityCard({ week }: { week: WeekView }) {
           <MiniWeek
             label="Next week"
             dates={Array.from({ length: 7 }, (_, i) => addDaysIso(week.from, 7 + i))}
-            activeDates={[c.proposedDate]}
+            activeDates={[targetDate]}
             chipName={c.taskName}
             chipColor={c.projectColor}
-            chipTime={fmtTime(c.proposedStart)}
+            chipTime={fmtTime(targetStart)}
             highlight
           />
         </div>
+
+        {pickerOpen && (
+          <MoveDatePicker
+            initialDate={targetDate}
+            initialStart={targetStart}
+            onCancel={() => setPickerOpen(false)}
+            onSave={(date, start) => {
+              moveTaskToNextWeek(c.taskId, date, start);
+              setPickerOpen(false);
+              setCustomSlot(null);
+            }}
+          />
+        )}
 
         <div className="flex items-center justify-between gap-4 pt-3">
           <p className="tnum text-xs text-muted-foreground">
@@ -494,18 +507,25 @@ function CapacityCard({ week }: { week: WeekView }) {
             </span>{" "}
             · next week{" "}
             <span className="font-medium text-foreground">
-              {formatHours(signal.nextWeekAfterMove)}
+              {formatHours(signal.nextWeekTotal + c.hours)}
             </span>{" "}
             — both within {formatHours(signal.capacity)}.
           </p>
-          <button
-            className="pill shrink-0 border-info/50 text-foreground"
-            onClick={() =>
-              moveTaskToNextWeek(c.taskId, c.proposedDate, c.proposedStart)
-            }
-          >
-            Move to {slotLabel(c.proposedDate, c.proposedStart)}
-          </button>
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              className={cn("pill text-muted-foreground", pickerOpen && "border-info/50 text-foreground")}
+              onClick={() => setPickerOpen((v) => !v)}
+            >
+              <CalendarDays className="size-3.5" />
+              Pick another date…
+            </button>
+            <button
+              className="pill border-info/50 text-foreground"
+              onClick={() => moveTaskToNextWeek(c.taskId, targetDate, targetStart)}
+            >
+              Move to {slotLabel(targetDate, targetStart)}
+            </button>
+          </div>
         </div>
       </div>
     </div>
