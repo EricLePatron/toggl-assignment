@@ -611,7 +611,7 @@ function CapacityCard({ week }: { week: WeekView }) {
   );
 }
 
-export function ImpactTab({ week }: { week: WeekView }) {
+export function OptimizeBoard({ week }: { week: WeekView }) {
   useEstimateOverrides();
   return (
     <>
