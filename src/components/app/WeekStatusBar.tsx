@@ -72,25 +72,18 @@ function computeSignals(week: WeekView): Signal[] {
     });
 
   /* 2. Overrun: had an estimate, past logged time exceeds it, active this week */
-  const overrun: Signal[] = tasks
-    .filter(
-      (t) =>
-        t.estimateHours != null &&
-        t.tracked > t.estimateHours &&
-        logged.some((e) => e.taskId === t.id),
-    )
-    .sort((a, b) => (b.delta ?? 0) - (a.delta ?? 0))
-    .map((t) => {
-      const project = projectById(t.projectId)!;
-      return {
-        kind: "overrun" as const,
-        projectName: project.name,
-        client: project.client,
-        taskName: t.name,
-        logged: t.tracked,
-        estimate: t.estimateHours!,
-      };
-    });
+  /* Overrun — shared cumulative logic (see @/lib/week-signals);
+     * the bar only surfaces tasks that were logged this week. */
+  const overrun: Signal[] = overrunTasks()
+    .filter((t) => logged.some((e) => e.taskId === t.taskId))
+    .map((t) => ({
+      kind: "overrun" as const,
+      projectName: t.projectName,
+      client: t.client,
+      taskName: t.taskName,
+      logged: t.logged,
+      estimate: t.estimate,
+    }));
 
   /* 3. Secondary: billable time logged without an active rate */
   const uncoveredHours = logged
