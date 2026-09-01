@@ -6,6 +6,7 @@ import {
   Circle,
   Clock3,
   FolderKanban,
+  MoveRight,
 } from "lucide-react";
 import {
   currentUser,
@@ -15,6 +16,7 @@ import {
   projectById,
   projectColorClass,
   timeEntries,
+  type ProjectColor,
   type WeekView,
 } from "@/data/fixtures";
 
@@ -349,6 +351,11 @@ function CapacityCard({ week }: { week: WeekView }) {
   if (!signal || !signal.candidate || !signal.canMove) return null;
   const c = signal.candidate;
 
+  const currentBlock = plannedEntries.find(
+    (e) => e.taskId === c.taskId && e.date >= week.from && e.date <= week.to,
+  );
+  const currentSlotTime = currentBlock ? fmtTime(currentBlock.start) : "";
+
   const moveReasons = [
     { icon: Circle, text: "Status is Todo — not started yet" },
     { icon: CalendarClock, text: "Originally planned for " + formatPlannedDates(c.plannedDates) },
@@ -452,6 +459,28 @@ function CapacityCard({ week }: { week: WeekView }) {
           </div>
         </div>
 
+        {/* Mini calendar: this week → proposed slot next week */}
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 pt-3">
+          <MiniWeek
+            label="This week"
+            dates={week.days.map((d) => d.date)}
+            activeDates={c.plannedDates}
+            chipName={c.taskName}
+            chipColor={c.projectColor}
+            chipTime={currentSlotTime}
+          />
+          <MoveRight className="size-5 shrink-0 text-info" />
+          <MiniWeek
+            label="Next week"
+            dates={Array.from({ length: 7 }, (_, i) => addDaysIso(week.from, 7 + i))}
+            activeDates={[c.proposedDate]}
+            chipName={c.taskName}
+            chipColor={c.projectColor}
+            chipTime={fmtTime(c.proposedStart)}
+            highlight
+          />
+        </div>
+
         <div className="flex items-center justify-between gap-4 pt-3">
           <p className="tnum text-xs text-muted-foreground">
             After moving: this week{" "}
@@ -466,9 +495,11 @@ function CapacityCard({ week }: { week: WeekView }) {
           </p>
           <button
             className="pill shrink-0 border-info/50 text-foreground"
-            onClick={() => moveTaskToNextWeek(c.taskId, week.from)}
+            onClick={() =>
+              moveTaskToNextWeek(c.taskId, c.proposedDate, c.proposedStart)
+            }
           >
-            Move to next week
+            Move to {slotLabel(c.proposedDate, c.proposedStart)}
           </button>
         </div>
       </div>
@@ -504,4 +535,86 @@ function formatH(h: number) {
   const hours = Math.floor(h);
   const min = Math.round((h - hours) * 60);
   return min ? `${hours}h ${min}m` : `${hours}h`;
+}
+
+const addDaysIso = (iso: string, days: number) => {
+  const d = new Date(`${iso}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+};
+
+function fmtTime(h: number) {
+  const suffix = h < 12 ? "AM" : "PM";
+  const base = h % 12 === 0 ? 12 : h % 12;
+  return `${base}:00 ${suffix}`;
+}
+
+function slotLabel(dateIso: string, start: number) {
+  const d = new Date(`${dateIso}T00:00:00Z`);
+  return `${DAY_SHORT[d.getUTCDay()]} ${MONTH_SHORT[d.getUTCMonth()]} ${d.getUTCDate()} · ${fmtTime(start)}`;
+}
+
+function MiniWeek({
+  label,
+  dates,
+  activeDates,
+  chipName,
+  chipColor,
+  chipTime,
+  highlight,
+}: {
+  label: string;
+  dates: string[];
+  activeDates: string[];
+  chipName: string;
+  chipColor: ProjectColor;
+  chipTime: string;
+  highlight?: boolean;
+}) {
+  return (
+    <div
+      className={cn(
+        "rounded-[10px] border p-2",
+        highlight ? "border-info/40 bg-info/5" : "border-border bg-surface-2/40",
+      )}
+    >
+      <div className="pb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+        {label}
+      </div>
+      <div className="grid grid-cols-7 gap-1">
+        {dates.map((date, i) => {
+          const active = activeDates.includes(date);
+          return (
+            <div
+              key={date}
+              className={cn(
+                "flex min-h-16 flex-col items-center gap-0.5 rounded-md border px-0.5 py-1",
+                active ? "border-info/50 bg-info/10" : "border-border/50",
+              )}
+            >
+              <span className="text-[9px] uppercase text-subtle">
+                {DAY_LABELS[i]}
+              </span>
+              <span className="tnum text-[11px] font-medium text-muted-foreground">
+                {Number(date.slice(8, 10))}
+              </span>
+              {active && (
+                <div
+                  className={cn(
+                    "mt-0.5 w-full rounded px-1 py-0.5 text-center",
+                    projectColorClass[chipColor],
+                  )}
+                >
+                  <div className="truncate text-[9px] font-semibold text-black/85">
+                    {chipName}
+                  </div>
+                  <div className="tnum text-[9px] text-black/70">{chipTime}</div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 }

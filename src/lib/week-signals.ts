@@ -182,7 +182,26 @@ export type CapacityCandidate = {
   status: import("@/data/fixtures").TaskStatus;
   tag: string | null;
   plannedDates: string[]; // YYYY-MM-DD blocks inside the viewed week
+  proposedDate: string; // YYYY-MM-DD slot in the next week
+  proposedStart: number; // hour of day
 };
+
+/** Picks the lightest weekday of the week starting `from` for the current user. */
+function lightestWeekday(from: string): { date: string; start: number } {
+  let best: { date: string; start: number; load: number } | null = null;
+  for (let i = 0; i < 5; i++) {
+    const date = addDaysIso(from, i);
+    const logged = timeEntries
+      .filter((e) => e.memberId === currentUser.id && e.date === date)
+      .reduce((s, e) => s + e.duration, 0);
+    const planned = plannedEntries
+      .filter((e) => e.memberId === currentUser.id && e.date === date)
+      .reduce((s, e) => s + e.duration, 0);
+    const load = logged + planned;
+    if (!best || load < best.load) best = { date, start: 9, load };
+  }
+  return { date: best!.date, start: best!.start };
+}
 
 export type CapacitySignal = {
   capacity: number;
@@ -250,6 +269,10 @@ export function capacitySignal(week: WeekView): CapacitySignal | null {
       status: pick.task.status,
       tag: pick.task.tag,
       plannedDates,
+      ...(() => {
+        const slot = lightestWeekday(nextFrom);
+        return { proposedDate: slot.date, proposedStart: slot.start };
+      })(),
     };
   }
 
@@ -268,13 +291,16 @@ export function capacitySignal(week: WeekView): CapacitySignal | null {
   };
 }
 
-/** Moves a task's planned blocks from the given week to Monday of the next week. */
-export function moveTaskToNextWeek(taskId: string, weekFrom: string) {
-  const nextMonday = addDaysIso(weekFrom, 7);
-  let cursor = 16;
+/** Moves a task's planned blocks to a specific slot (date + start hour). */
+export function moveTaskToNextWeek(
+  taskId: string,
+  targetDate: string,
+  startHour = 9,
+) {
+  let cursor = startHour;
   for (const e of plannedEntries) {
     if (e.taskId !== taskId) continue;
-    e.date = nextMonday;
+    e.date = targetDate;
     e.start = cursor;
     e.end = cursor + e.duration;
     cursor = e.end;
