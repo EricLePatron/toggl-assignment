@@ -174,20 +174,9 @@ function OverrunCard() {
   const totalCost = rows.reduce((s, r) => s + (r.overCost ?? 0), 0);
 
   return (
-    <div
-      className="panel overflow-hidden border-warning/40"
-      style={{
-        backgroundColor: "color-mix(in oklab, var(--color-warning) 8%, transparent)",
-      }}
-    >
+    <div className="panel overflow-hidden border-warning/50">
       <div className="flex items-center gap-3 px-5 py-4">
-        <span
-          className="flex size-8 shrink-0 items-center justify-center rounded-[10px] text-warning"
-          style={{
-            backgroundColor:
-              "color-mix(in oklab, var(--color-warning) 16%, transparent)",
-          }}
-        >
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-[10px] border border-warning/40 text-warning">
           <Clock3 className="size-4" />
         </span>
         <div className="min-w-0 flex-1">
@@ -197,19 +186,13 @@ function OverrunCard() {
             limited to this week.
           </p>
         </div>
-        <span
-          className="tnum ml-auto shrink-0 rounded-full border border-warning/40 px-3 py-1 text-xs font-semibold text-warning"
-          style={{
-            backgroundColor:
-              "color-mix(in oklab, var(--color-warning) 10%, transparent)",
-          }}
-        >
+        <span className="tnum ml-auto shrink-0 rounded-full border border-warning/40 px-3 py-1 text-xs font-semibold text-warning">
           {rows.length} task{rows.length > 1 ? "s" : ""} · +{formatHours(totalOver)} ·{" "}
           {money(totalCost)}
         </span>
       </div>
 
-      <div className="divide-y divide-warning/20 border-t border-warning/25">
+      <div className="divide-y divide-border border-t border-border">
         {rows.map((r) => (
           <OverrunRow key={r.taskId} row={r} />
         ))}
