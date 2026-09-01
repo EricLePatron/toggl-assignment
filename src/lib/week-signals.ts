@@ -245,7 +245,7 @@ export function capacitySignal(week: WeekView): CapacitySignal | null {
       projectColor: project?.color ?? "violet",
       client: project?.client ?? null,
       hours: pick.hours,
-      estimate: taskEstimate(pick.task.id, pick.task.estimate),
+      estimate: taskEstimate(pick.task.id, pick.task.estimateHours),
       priority: pick.task.priority,
       status: pick.task.status,
       tag: pick.task.tag,
