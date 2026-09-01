@@ -27,9 +27,13 @@ import {
   type WeekView,
 } from "@/data/fixtures";
 import { Card, Stat, Tabs } from "@/components/app/primitives";
+import { ImpactTab } from "@/components/app/ImpactTab";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/reports")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    view: typeof search["view"] === "string" ? (search["view"] as string) : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Reports — Focus Replica" },
@@ -50,6 +54,7 @@ export const Route = createFileRoute("/reports")({
 
 const TABS = [
   "Summary",
+  "Impact",
   "Utilization",
   "Workload",
   "Profitability",
@@ -58,7 +63,10 @@ const TABS = [
 ];
 
 function ReportsScreen() {
-  const [tab, setTab] = useState<string>("Summary");
+  const { view } = Route.useSearch();
+  const [tab, setTab] = useState<string>(
+    view && TABS.includes(view) ? view : "Summary",
+  );
   const [weekOffset, setWeekOffset] = useState(DEFAULT_WEEK_OFFSET);
   const week = weekView(weekOffset);
 
@@ -131,6 +139,7 @@ function ReportsScreen() {
 
       <div className="space-y-5 px-7">
         {tab === "Summary" && <SummaryTab week={week} />}
+        {tab === "Impact" && <ImpactTab week={week} />}
         {tab === "Utilization" && <UtilizationTab week={week} />}
         {tab === "Workload" && <WorkloadTab week={week} />}
         {tab === "Profitability" && <ProfitabilityTab week={week} />}
