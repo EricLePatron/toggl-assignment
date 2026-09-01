@@ -236,30 +236,41 @@ function OverrunCard() {
 
   return (
     <div
-      className="panel border-warning/40"
+      className="panel overflow-hidden border-warning/40"
       style={{
         backgroundColor: "color-mix(in oklab, var(--color-warning) 8%, transparent)",
       }}
     >
-      <div className="flex items-start gap-3 px-5 py-4">
-        <Clock3 className="size-5 shrink-0 text-warning" />
-        <div>
+      <div className="flex items-center gap-3 px-5 py-4">
+        <span
+          className="flex size-8 shrink-0 items-center justify-center rounded-[10px] text-warning"
+          style={{
+            backgroundColor:
+              "color-mix(in oklab, var(--color-warning) 16%, transparent)",
+          }}
+        >
+          <Clock3 className="size-4" />
+        </span>
+        <div className="min-w-0 flex-1">
           <h2 className="text-base font-semibold">Estimate overrun</h2>
           <p className="pt-0.5 text-sm text-muted-foreground">
             Tasks whose total logged time exceeds their estimate. Cumulative — not
             limited to this week.
           </p>
         </div>
+        <span
+          className="tnum ml-auto shrink-0 rounded-full border border-warning/40 px-3 py-1 text-xs font-semibold text-warning"
+          style={{
+            backgroundColor:
+              "color-mix(in oklab, var(--color-warning) 10%, transparent)",
+          }}
+        >
+          {rows.length} task{rows.length > 1 ? "s" : ""} · +{formatHours(totalOver)} ·{" "}
+          {money(totalCost)}
+        </span>
       </div>
-      {rows.length > 1 && (
-        <div className="tnum border-y border-warning/25 px-5 py-2.5 text-sm">
-          <span className="text-muted-foreground">Total over budget : </span>
-          <span className="font-semibold">{formatHours(totalOver)}</span>
-          <span className="text-muted-foreground"> · </span>
-          <span className="font-semibold">{money(totalCost)}</span>
-        </div>
-      )}
-      <div className="divide-y divide-warning/20">
+
+      <div className="divide-y divide-warning/20 border-t border-warning/25">
         {rows.map((r) => (
           <OverrunRow key={r.taskId} row={r} />
         ))}
@@ -271,67 +282,194 @@ function OverrunCard() {
 function OverrunRow({ row }: { row: ReturnType<typeof overrunTasks>[number] }) {
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState("");
+  const [saved, setSaved] = useState<number | null>(null);
 
-  const save = () => {
-    const hours = Number(value.replace(",", "."));
-    if (Number.isFinite(hours) && hours > 0) setTaskEstimate(row.taskId, hours);
+  const repeat = row.repeat;
+  const suggested = repeat?.suggestedEstimate ?? Math.ceil(row.logged * 2) / 2;
+
+  const apply = (hours: number, taskId: string) => {
+    if (!Number.isFinite(hours) || hours <= 0) return;
+    setTaskEstimate(taskId, hours);
+    setSaved(hours);
     setEditing(false);
     setValue("");
   };
 
+  const pct = Math.min(100, Math.round((row.estimate / row.logged) * 100));
+
   return (
-    <div className="px-5 py-3 text-sm">
-      <div className="flex items-center gap-4">
-        <div className="min-w-0 flex-1">
-          <div className="truncate font-medium">{row.taskName}</div>
-          <div className="truncate text-xs text-muted-foreground">
-            {row.projectName}
-            {row.client ? ` — ${row.client}` : ""}
+    <div className="px-5 py-4">
+      {/* --- Overrunning task, main info -------------------------------- */}
+      <div className="rounded-[10px] border border-warning/30 bg-surface-2/60 p-3">
+        <div className="flex items-start gap-3">
+          <Clock3 className="mt-0.5 size-5 shrink-0 text-warning" />
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-sm font-medium">{row.taskName}</div>
+            <div className="flex flex-wrap items-center gap-2 pt-2">
+              <span className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2 py-1 text-xs">
+                <FolderKanban
+                  className={cn("size-3.5", projectColorClass[row.projectColor])}
+                />
+                <span className="max-w-[12rem] truncate">{row.projectName}</span>
+              </span>
+              {row.client && (
+                <span className="inline-flex items-center rounded-lg border border-border bg-surface px-2 py-1 text-xs text-muted-foreground">
+                  {row.client}
+                </span>
+              )}
+              <span className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2 py-1 text-xs">
+                <span className="size-1.5 rounded-full bg-current" />
+                {row.status}
+              </span>
+              {row.tag && (
+                <span className="inline-flex items-center rounded-lg border border-border bg-surface px-2 py-1 text-xs text-muted-foreground">
+                  {row.tag}
+                </span>
+              )}
+              {row.rate != null && (
+                <span className="tnum inline-flex items-center rounded-lg border border-border bg-surface px-2 py-1 text-xs text-muted-foreground">
+                  {money(row.rate)}/h
+                </span>
+              )}
+            </div>
           </div>
+          <span className="tnum shrink-0 rounded-lg border border-warning/40 bg-warning/10 px-2.5 py-1 text-xs font-semibold text-warning">
+            +{formatHours(row.overHours)} · +{row.overPct}%
+          </span>
         </div>
-        <div className="tnum shrink-0 text-right">
-          <div>
-            {formatHours(row.logged)} logged vs {formatHours(row.estimate)} estimated{" "}
-            <span className="font-semibold text-warning">
-              (+{formatHours(row.overHours)}, +{row.overPct}%)
+
+        {/* estimate vs logged bar */}
+        <div className="pt-3">
+          <div className="relative h-2 overflow-hidden rounded-full bg-warning/20">
+            <div className="h-full rounded-full bg-warning" style={{ width: `${pct}%` }} />
+          </div>
+          <div className="tnum flex items-center justify-between pt-1.5 text-xs text-muted-foreground">
+            <span>
+              Estimated{" "}
+              <span className="font-semibold text-foreground">
+                {formatHours(row.estimate)}
+              </span>
+            </span>
+            <span>
+              Logged{" "}
+              <span className="font-semibold text-warning">
+                {formatHours(row.logged)}
+              </span>
+              {row.overCost != null && ` · ${money(row.overCost)} over budget`}
             </span>
           </div>
-          <div className="text-xs text-muted-foreground">
-            Overage cost: {row.overCost != null ? money(row.overCost) : "—"}
-          </div>
-        </div>
-        <div className="shrink-0">
-          {editing ? (
-            <div className="flex items-center gap-2">
-              <input
-                autoFocus
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") save();
-                  if (e.key === "Escape") setEditing(false);
-                }}
-                placeholder="Hours"
-                aria-label={`New estimate in hours for ${row.taskName}`}
-                className={cn(
-                  "tnum w-20 rounded-[10px] border border-border bg-surface-2 px-2 py-1 text-sm",
-                  "outline-none focus:border-accent",
-                )}
-              />
-              <button className="pill" onClick={save}>
-                Save
-              </button>
-            </div>
-          ) : (
-            <button className="pill" onClick={() => setEditing(true)}>
-              Update estimate
-            </button>
-          )}
         </div>
       </div>
-      <p className="pt-1.5 text-xs text-muted-foreground">
-        Consider padding similar estimates next time.
-      </p>
+
+      {/* --- The same task happens again next week ---------------------- */}
+      {repeat && (
+        <div className="mt-3 rounded-[10px] border border-warning/30 bg-warning/5 p-3">
+          <div className="flex items-center gap-2 pb-3">
+            <span className="inline-flex h-5 items-center rounded bg-warning/15 px-2 text-[11px] font-semibold uppercase tracking-wide text-warning">
+              Suggested action
+            </span>
+            <span className="text-xs text-muted-foreground">
+              The same work is planned again — re-estimate it before it repeats
+            </span>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="min-w-[16rem] flex-1 rounded-[10px] border border-border bg-surface-2/70 p-3">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <CalendarDays className="size-3.5 text-warning" />
+                {slotLabel(repeat.date, repeat.start)} – {fmtTime(repeat.end)}
+              </div>
+              <div className="truncate pt-1.5 text-sm font-medium">
+                {repeat.taskName}
+              </div>
+              <div className="flex flex-wrap items-center gap-2 pt-2">
+                <span className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2 py-1 text-xs">
+                  <FolderKanban
+                    className={cn("size-3.5", projectColorClass[row.projectColor])}
+                  />
+                  <span className="max-w-[12rem] truncate">{row.projectName}</span>
+                </span>
+                <span className="tnum inline-flex items-center rounded-lg border border-border bg-surface px-2 py-1 text-xs text-muted-foreground">
+                  {formatHours(repeat.plannedHours)} planned
+                </span>
+                <span
+                  className={cn(
+                    "tnum inline-flex items-center rounded-lg border px-2 py-1 text-xs font-medium",
+                    saved != null
+                      ? "border-positive/40 bg-positive/10 text-positive"
+                      : "border-warning/40 bg-warning/10 text-warning",
+                  )}
+                >
+                  Est.{" "}
+                  {saved != null
+                    ? formatHours(saved)
+                    : repeat.estimate != null
+                      ? formatHours(repeat.estimate)
+                      : "—"}
+                </span>
+              </div>
+            </div>
+
+            <MoveRight className="size-5 shrink-0 text-warning" />
+
+            <div className="min-w-[14rem] flex-1">
+              {saved != null ? (
+                <div className="flex items-center gap-2 rounded-[10px] border border-positive/40 bg-positive/10 px-3 py-3 text-sm text-positive">
+                  <CheckCircle2 className="size-4 shrink-0" />
+                  Estimate updated to {formatHours(saved)}
+                </div>
+              ) : editing ? (
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center rounded-[10px] border border-accent bg-surface-2 px-2 py-1.5 ring-2 ring-accent/25">
+                    <input
+                      autoFocus
+                      value={value}
+                      onChange={(e) => setValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter")
+                          apply(Number(value.replace(",", ".")), repeat.taskId);
+                        if (e.key === "Escape") setEditing(false);
+                      }}
+                      placeholder={String(suggested)}
+                      aria-label={`New estimate in hours for ${repeat.taskName}`}
+                      className="tnum w-14 bg-transparent text-right text-sm outline-none"
+                    />
+                    <span className="pl-0.5 text-sm text-muted-foreground">h</span>
+                  </div>
+                  <button
+                    className="grad-accent rounded-[10px] px-3 py-2 text-sm font-semibold text-primary-foreground"
+                    onClick={() => apply(Number(value.replace(",", ".")), repeat.taskId)}
+                  >
+                    Save
+                  </button>
+                  <button className="pill" onClick={() => setEditing(false)}>
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    className="grad-accent inline-flex items-center gap-2 rounded-[10px] px-3.5 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+                    onClick={() => apply(suggested, repeat.taskId)}
+                  >
+                    <CheckCircle2 className="size-4" />
+                    Update estimate to {formatHours(suggested)}
+                  </button>
+                  <button className="pill" onClick={() => setEditing(true)}>
+                    Set another value…
+                  </button>
+                </div>
+              )}
+              <p className="tnum pt-2 text-xs text-muted-foreground">
+                Based on the {row.overPct}% overrun observed on the same work
+                {repeat.estimate != null &&
+                  ` (${formatHours(repeat.estimate)} → ${formatHours(suggested)})`}
+                .
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
