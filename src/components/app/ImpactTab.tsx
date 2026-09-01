@@ -573,8 +573,9 @@ const addDaysIso = (iso: string, days: number) => {
 
 function fmtTime(h: number) {
   const suffix = h < 12 ? "AM" : "PM";
-  const base = h % 12 === 0 ? 12 : h % 12;
-  return `${base}:00 ${suffix}`;
+  const base = Math.floor(h) % 12 === 0 ? 12 : Math.floor(h) % 12;
+  const min = Math.round((h - Math.floor(h)) * 60);
+  return `${base}:${String(min).padStart(2, "0")} ${suffix}`;
 }
 
 function slotLabel(dateIso: string, start: number) {
