@@ -269,6 +269,7 @@ export function capacitySignal(week: WeekView): CapacitySignal | null {
       status: pick.task.status,
       tag: pick.task.tag,
       plannedDates,
+      ...lightestWeekday(nextFrom),
     };
   }
 
