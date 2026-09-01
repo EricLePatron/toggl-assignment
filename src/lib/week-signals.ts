@@ -5,6 +5,7 @@
 import { useSyncExternalStore } from "react";
 import {
   currentUser,
+  formatHours,
   plannedEntries,
   projectById,
   tasks,
@@ -23,8 +24,20 @@ const overrides = new Map<string, number>();
 const listeners = new Set<() => void>();
 let version = 0;
 
+/**
+ * Updates a task's estimate. Mocked: lives in memory only and is reset on
+ * page reload. The task object itself is patched so every screen (Tasks,
+ * Project detail, Calendar) shows the new value.
+ */
 export function setTaskEstimate(taskId: string, hours: number) {
   overrides.set(taskId, hours);
+  const task = taskById(taskId);
+  if (task) {
+    task.estimateHours = hours;
+    task.estimate = formatHours(hours);
+    task.delta = Math.round((task.tracked - hours) * 4) / 4;
+    task.ratio = task.tracked / hours;
+  }
   version++;
   listeners.forEach((l) => l());
 }
@@ -153,8 +166,9 @@ function findRepeat(source: {
     const last = blocks[blocks.length - 1]!;
     const plannedHours = blocks.reduce((s, e) => s + e.duration, 0);
     const estimate = taskEstimate(t.id, t.estimateHours);
-    const suggested =
-      Math.round((estimate ?? plannedHours) * source.loggedRatio * 2) / 2;
+    // Observed ratio applied to the current estimate, plus a 30-min safety
+    // buffer, rounded up to the full hour (5h × 1.6 = 8h → 9h).
+    const suggested = Math.ceil((estimate ?? plannedHours) * source.loggedRatio + 0.5);
     return {
       taskId: t.id,
       taskName: t.name,

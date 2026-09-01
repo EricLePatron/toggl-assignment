@@ -204,15 +204,19 @@ function OverrunCard() {
 function OverrunRow({ row }: { row: ReturnType<typeof overrunTasks>[number] }) {
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState("");
-  const [saved, setSaved] = useState<number | null>(null);
+  /** Frozen once the action is taken: the suggestion must not recompute afterwards. */
+  const [done, setDone] = useState<{ from: number | null; to: number } | null>(null);
+  const saved = done?.to ?? null;
 
   const repeat = row.repeat;
-  const suggested = repeat?.suggestedEstimate ?? Math.ceil(row.logged * 2) / 2;
+  const liveSuggested = repeat?.suggestedEstimate ?? Math.ceil(row.logged * 2) / 2;
+  const suggested = done?.to ?? liveSuggested;
+  const previousEstimate = done ? done.from : (repeat?.estimate ?? null);
 
   const apply = (hours: number, taskId: string) => {
     if (!Number.isFinite(hours) || hours <= 0) return;
+    setDone({ from: repeat?.estimate ?? null, to: hours });
     setTaskEstimate(taskId, hours);
-    setSaved(hours);
     setEditing(false);
     setValue("");
   };
@@ -325,8 +329,8 @@ function OverrunRow({ row }: { row: ReturnType<typeof overrunTasks>[number] }) {
                   Est.{" "}
                   {saved != null
                     ? formatHours(saved)
-                    : repeat.estimate != null
-                      ? formatHours(repeat.estimate)
+                    : previousEstimate != null
+                      ? formatHours(previousEstimate)
                       : "—"}
                 </span>
               </div>
@@ -383,10 +387,20 @@ function OverrunRow({ row }: { row: ReturnType<typeof overrunTasks>[number] }) {
                 </div>
               )}
               <p className="tnum pt-2 text-xs text-muted-foreground">
-                Based on the {row.overPct}% overrun observed on the same work
-                {repeat.estimate != null &&
-                  ` (${formatHours(repeat.estimate)} → ${formatHours(suggested)})`}
-                .
+                {done ? (
+                  <>
+                    Estimate changed from{" "}
+                    {done.from != null ? formatHours(done.from) : "—"} to{" "}
+                    {formatHours(done.to)}. Mocked — reloading the page resets it.
+                  </>
+                ) : (
+                  <>
+                    Based on the {row.overPct}% overrun observed on the same work
+                    {previousEstimate != null &&
+                      ` (${formatHours(previousEstimate)} → ${formatHours(suggested)})`}
+                    .
+                  </>
+                )}
               </p>
             </div>
           </div>
