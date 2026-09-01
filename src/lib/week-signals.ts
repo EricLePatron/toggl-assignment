@@ -4,13 +4,18 @@
  */
 import { useSyncExternalStore } from "react";
 import {
+  currentUser,
+  plannedEntries,
   projectById,
   tasks,
+  taskById,
   timeEntries,
   TODAY,
   NOW_HOUR,
+  WEEKLY_CAPACITY,
   type WeekView,
 } from "@/data/fixtures";
+
 
 /* ---------------- estimate overrides (client-side, in-memory) ------------- */
 
