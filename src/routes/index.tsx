@@ -77,7 +77,7 @@ function TimerScreen() {
   const [description, setDescription] = useState("");
   const [weekOffset, setWeekOffset] = useState(DEFAULT_WEEK_OFFSET);
   const week = weekView(weekOffset);
-  const { days: weekDays, events: calendarEvents, summary: weekSummary } = week;
+  const { days: weekDays, events: calendarEvents } = week;
 
   useEffect(() => {
     if (!running) return;
