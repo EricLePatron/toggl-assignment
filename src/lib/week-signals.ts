@@ -182,7 +182,26 @@ export type CapacityCandidate = {
   status: import("@/data/fixtures").TaskStatus;
   tag: string | null;
   plannedDates: string[]; // YYYY-MM-DD blocks inside the viewed week
+  proposedDate: string; // YYYY-MM-DD slot in the next week
+  proposedStart: number; // hour of day
 };
+
+/** Picks the lightest weekday of the week starting `from` for the current user. */
+function lightestWeekday(from: string): { date: string; start: number } {
+  let best: { date: string; start: number; load: number } | null = null;
+  for (let i = 0; i < 5; i++) {
+    const date = addDaysIso(from, i);
+    const logged = timeEntries
+      .filter((e) => e.memberId === currentUser.id && e.date === date)
+      .reduce((s, e) => s + e.duration, 0);
+    const planned = plannedEntries
+      .filter((e) => e.memberId === currentUser.id && e.date === date)
+      .reduce((s, e) => s + e.duration, 0);
+    const load = logged + planned;
+    if (!best || load < best.load) best = { date, start: 9, load };
+  }
+  return { date: best!.date, start: best!.start };
+}
 
 export type CapacitySignal = {
   capacity: number;
