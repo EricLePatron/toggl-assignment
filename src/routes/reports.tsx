@@ -27,7 +27,7 @@ import {
   type WeekView,
 } from "@/data/fixtures";
 import { Card, Stat, Tabs } from "@/components/app/primitives";
-import { ImpactTab } from "@/components/app/ImpactTab";
+
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/reports")({
@@ -54,7 +54,6 @@ export const Route = createFileRoute("/reports")({
 
 const TABS = [
   "Summary",
-  "Impact",
   "Utilization",
   "Workload",
   "Profitability",
@@ -139,7 +138,6 @@ function ReportsScreen() {
 
       <div className="space-y-5 px-7">
         {tab === "Summary" && <SummaryTab week={week} />}
-        {tab === "Impact" && <ImpactTab week={week} />}
         {tab === "Utilization" && <UtilizationTab week={week} />}
         {tab === "Workload" && <WorkloadTab week={week} />}
         {tab === "Profitability" && <ProfitabilityTab week={week} />}

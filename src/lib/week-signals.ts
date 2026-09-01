@@ -1,6 +1,6 @@
 /**
  * Shared week-signal logic used by both the Calendar week status bar and the
- * Reports > Impact view, so the two can never disagree.
+ * the Optimize page, so the two can never disagree.
  */
 import { useSyncExternalStore } from "react";
 import {
