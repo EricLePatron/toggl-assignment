@@ -222,6 +222,7 @@ export type OverrunTask = {
   overPct: number;
   overCost: number | null;
   repeat: OverrunRepeat | null;
+  resolved: OverrunResolution | null;
 };
 
 /** Base name shared by a task and its follow-up ("X — phase 2" → "X"). */
