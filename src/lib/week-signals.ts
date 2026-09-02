@@ -272,10 +272,13 @@ function findRepeat(source: {
  * Only surfaced for the displayed week when the task has logged activity
  * that week, so the Optimize page and the Calendar status bar stay in sync.
  */
-export function overrunTasks(week: WeekView): OverrunTask[] {
+export function overrunTasks(week: WeekView, includeResolved = false): OverrunTask[] {
   const rows: OverrunTask[] = [];
   for (const t of tasks) {
-    const estimate = taskEstimate(t.id, t.estimateHours);
+    const resolution = resolvedOverruns.get(t.id) ?? null;
+    if (resolution && !includeResolved) continue;
+    const liveEstimate = taskEstimate(t.id, t.estimateHours);
+    const estimate = resolution ? (resolution.from ?? liveEstimate) : liveEstimate;
     if (estimate == null) continue;
     const entries = timeEntries.filter((e) => e.taskId === t.id && isPastEntry(e));
     const logged = entries.reduce((s, e) => s + e.duration, 0);
