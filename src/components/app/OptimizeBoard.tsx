@@ -264,6 +264,7 @@ function OverrunRow({ row }: { row: ReturnType<typeof overrunTasks>[number] }) {
       freezeConfirmation: true,
     });
     setEditing(false);
+    setEditingRepeat(false);
     setValue("");
   };
 
