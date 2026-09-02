@@ -311,6 +311,7 @@ export function overrunTasks(week: WeekView, includeResolved = false): OverrunTa
         name: t.name,
         loggedRatio: logged / estimate,
       }),
+      resolved: resolution,
     });
   }
   return rows.sort((a, b) => b.overHours - a.overHours);
