@@ -465,7 +465,7 @@ function OverrunRow({ row }: { row: ReturnType<typeof overrunTasks>[number] }) {
                   <CheckCircle2 className="size-4 shrink-0" />
                   Estimate updated to {formatHours(saved)}
                 </div>
-              ) : editing ? (
+              ) : editingRepeat ? (
                 <div className="flex items-center gap-2">
                   <div className="flex items-center rounded-[10px] border border-accent bg-surface-2 px-2 py-1.5 ring-2 ring-accent/25">
                     <input
@@ -475,7 +475,7 @@ function OverrunRow({ row }: { row: ReturnType<typeof overrunTasks>[number] }) {
                       onKeyDown={(e) => {
                         if (e.key === "Enter")
                           apply(Number(value.replace(",", ".")), repeat.taskId);
-                        if (e.key === "Escape") setEditing(false);
+                        if (e.key === "Escape") setEditingRepeat(false);
                       }}
                       placeholder={String(suggested)}
                       aria-label={`New estimate in hours for ${repeat.taskName}`}
@@ -489,7 +489,7 @@ function OverrunRow({ row }: { row: ReturnType<typeof overrunTasks>[number] }) {
                   >
                     Save
                   </button>
-                  <button className="pill" onClick={() => setEditing(false)}>
+                  <button className="pill" onClick={() => setEditingRepeat(false)}>
                     Cancel
                   </button>
                 </div>
@@ -502,7 +502,7 @@ function OverrunRow({ row }: { row: ReturnType<typeof overrunTasks>[number] }) {
                     <CheckCircle2 className="size-4" />
                     Update estimate to {formatHours(suggested)}
                   </button>
-                  <button className="pill" onClick={() => setEditing(true)}>
+                  <button className="pill" onClick={() => setEditingRepeat(true)}>
                     Set another value…
                   </button>
                 </div>
