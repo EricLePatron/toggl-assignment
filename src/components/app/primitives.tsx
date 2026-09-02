@@ -37,11 +37,7 @@ export function Pill({
 }) {
   return (
     <button
-      className={cn(
-        "pill",
-        active && "border-accent/60 bg-accent/15 text-foreground",
-        className,
-      )}
+      className={cn("pill", active && "border-accent/60 bg-accent/15 text-foreground", className)}
     >
       {children}
     </button>
@@ -67,33 +63,33 @@ export function PrimaryButton({
   );
 }
 
-export function Card({
-  children,
-  className,
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
+export function Card({ children, className }: { children: ReactNode; className?: string }) {
   return <div className={cn("panel p-5", className)}>{children}</div>;
 }
 
-export function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
+export function Stat({
+  label,
+  value,
+  hint,
+  valueClassName,
+  hintClassName,
+}: {
+  label: string;
+  value: string;
+  hint?: string;
+  valueClassName?: string;
+  hintClassName?: string;
+}) {
   return (
     <div className="flex-1 px-5 py-4">
       <div className="text-sm text-muted-foreground">{label}</div>
-      <div className="tnum pt-1 text-2xl font-semibold">{value}</div>
-      {hint && <div className="pt-0.5 text-xs text-subtle">{hint}</div>}
+      <div className={cn("tnum pt-1 text-2xl font-semibold", valueClassName)}>{value}</div>
+      {hint && <div className={cn("pt-0.5 text-xs text-subtle", hintClassName)}>{hint}</div>}
     </div>
   );
 }
 
-export function ProjectChip({
-  name,
-  color,
-}: {
-  name: string;
-  color: ProjectColor;
-}) {
+export function ProjectChip({ name, color }: { name: string; color: ProjectColor }) {
   return (
     <span className="inline-flex items-center gap-2 text-sm">
       <span className={cn("size-2.5 rounded-[3px]", projectColorClass[color])} />
