@@ -33,6 +33,7 @@ import {
   isPastEntry,
   moveTaskToNextWeek,
   overrunTasks,
+  resolveOverrun,
   scopeCreepTasks,
   setTaskEstimate,
   useEstimateOverrides,
