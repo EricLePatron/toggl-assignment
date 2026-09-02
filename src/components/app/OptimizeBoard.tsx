@@ -27,12 +27,14 @@ import {
 
 import { Card } from "@/components/app/primitives";
 import {
+  capacityResolution,
   capacitySignal,
   committedHoursForWeek,
   completedEstimateUpdate,
   isPastEntry,
   moveTaskToNextWeek,
   overrunTasks,
+  resolveCapacity,
   resolveOverrun,
   resolveScopeCreep,
   scopeCreepTasks,
@@ -581,9 +583,66 @@ function formatPlannedDates(dates: string[]) {
 function CapacityCard({ week }: { week: WeekView }) {
   const [customSlot, setCustomSlot] = useState<{ date: string; start: number } | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const resolution = capacityResolution(week);
   const signal = capacitySignal(week);
-  if (!signal || !signal.candidate || !signal.canMove) return null;
-  const c = signal.candidate;
+  if (!resolution && (!signal || !signal.candidate || !signal.canMove)) return null;
+
+  /* ---- Resolved state: frozen confirmation, no live recalculation ------ */
+  if (resolution) {
+    return (
+      <div
+        className="panel overflow-hidden border-info/40"
+        style={{
+          backgroundColor: "color-mix(in oklab, var(--color-info) 8%, transparent)",
+        }}
+      >
+        <div className="flex items-center gap-3 px-5 py-4">
+          <span
+            className="flex size-8 shrink-0 items-center justify-center rounded-[10px] text-info"
+            style={{
+              backgroundColor:
+                "color-mix(in oklab, var(--color-info) 16%, transparent)",
+            }}
+          >
+            <CalendarClock className="size-4" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-base font-semibold">Your week is over capacity</h2>
+            <p className="tnum pt-0.5 text-sm text-muted-foreground">
+              Capacity {formatHours(WEEKLY_CAPACITY)} · committed{" "}
+              <span className="font-semibold text-foreground">
+                {formatHours(resolution.committed)}
+              </span>{" "}
+              · +{formatHours(resolution.overage)} over
+            </p>
+          </div>
+          <span className="tnum ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-full border border-positive/40 bg-positive/10 px-3 py-1 text-xs font-semibold text-positive">
+            <CheckCircle2 className="size-3.5" />
+            Resolved
+          </span>
+        </div>
+        <div className="border-t border-info/25 px-5 py-4">
+          {resolution.action === "moved" ? (
+            <span className="inline-flex items-center gap-2 rounded-[10px] border border-positive/40 bg-positive/10 px-3 py-2 text-sm text-positive">
+              <CheckCircle2 className="size-4 shrink-0" />
+              Moved {resolution.taskName} ({formatHours(resolution.hours)}) to{" "}
+              {resolution.targetDate != null && resolution.targetStart != null
+                ? slotLabel(resolution.targetDate, resolution.targetStart)
+                : "next week"}
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-2 rounded-[10px] border border-border bg-surface-2/60 px-3 py-2 text-sm text-muted-foreground">
+              <CheckCircle2 className="size-4 shrink-0" />
+              Left as is — the week stays +{formatHours(resolution.overage)} over
+              capacity
+            </span>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  const c = signal!.candidate!;
 
   const targetDate = customSlot?.date ?? c.proposedDate;
   const targetStart = customSlot?.start ?? c.proposedStart;
