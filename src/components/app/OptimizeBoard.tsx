@@ -34,6 +34,7 @@ import {
   moveTaskToNextWeek,
   overrunTasks,
   resolveOverrun,
+  resolveScopeCreep,
   scopeCreepTasks,
   setTaskEstimate,
   useEstimateOverrides,
