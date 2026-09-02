@@ -187,6 +187,7 @@ export type ScopeCreepTask = {
   hours: number;
   rate: number | null;
   amount: number | null;
+  resolved: ScopeCreepResolution | null;
 };
 
 const iso = (date: Date) => date.toISOString().slice(0, 10);
@@ -202,11 +203,13 @@ export function loggedEntriesForWeek(week: WeekView) {
 }
 
 /** Scope creep, per qualifying task, for the week in view. Planned time excluded. */
-export function scopeCreepTasks(week: WeekView): ScopeCreepTask[] {
+export function scopeCreepTasks(week: WeekView, includeResolved = false): ScopeCreepTask[] {
   const logged = loggedEntriesForWeek(week);
   const rows: ScopeCreepTask[] = [];
   for (const t of tasks) {
-    if (taskEstimate(t.id, t.estimateHours) != null) continue;
+    const resolution = resolvedScopeCreep.get(t.id) ?? null;
+    if (resolution && !includeResolved) continue;
+    if (!resolution && taskEstimate(t.id, t.estimateHours) != null) continue;
     const project = projectById(t.projectId);
     if (!project || t.createdAt <= project.startDate) continue;
     const hours = logged
@@ -222,6 +225,7 @@ export function scopeCreepTasks(week: WeekView): ScopeCreepTask[] {
       hours,
       rate: project.rate ?? null,
       amount: project.rate != null ? hours * project.rate : null,
+      resolved: resolution,
     });
   }
   return rows.sort((a, b) => b.hours - a.hours);
