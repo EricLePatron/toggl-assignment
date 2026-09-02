@@ -11,6 +11,7 @@ import {
   Clock3,
   FolderKanban,
   MoveRight,
+  Sparkles,
 } from "lucide-react";
 import {
   currentUser,
@@ -861,18 +862,68 @@ function CapacityCard({ week }: { week: WeekView }) {
 
 function OptimizeEmptyState({ week }: { week: WeekView }) {
   const { logged, planned, total } = committedHoursForWeek(week.from, week.to);
-  return (
-    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-surface-2/30 px-6 py-16 text-center">
-      <div className="grad-accent flex size-16 items-center justify-center rounded-2xl text-primary-foreground shadow-lg shadow-accent/20">
-        <CheckCircle2 className="size-8" />
-      </div>
-      <h2 className="mt-6 text-xl font-semibold">Nothing to optimize this week</h2>
-      <p className="mt-2 max-w-md text-sm text-muted-foreground">
-        Your week looks healthy. No scope creep, estimate overruns, or capacity
-        issues were detected.
-      </p>
+  const checks = [
+    {
+      icon: AlertTriangle,
+      iconClass: "text-destructive",
+      bg: "color-mix(in oklab, var(--color-destructive) 12%, transparent)",
+      title: "Scope creep",
+      text: "Flag off-scope tasks that have no estimate.",
+    },
+    {
+      icon: Clock3,
+      iconClass: "text-warning",
+      bg: "color-mix(in oklab, var(--color-warning) 12%, transparent)",
+      title: "Estimate overruns",
+      text: "Catch tasks logging more than planned.",
+    },
+    {
+      icon: CalendarClock,
+      iconClass: "text-info",
+      bg: "color-mix(in oklab, var(--color-info) 12%, transparent)",
+      title: "Over-capacity weeks",
+      text: "Spot committed hours above your weekly limit.",
+    },
+  ];
 
-      <div className="mt-8 grid grid-cols-4 gap-4 rounded-xl border border-border bg-surface px-5 py-4">
+  return (
+    <div className="flex flex-col items-center rounded-2xl border border-border bg-surface px-6 py-10">
+      <div className="flex flex-col items-center text-center">
+        <div className="grad-accent flex size-14 items-center justify-center rounded-2xl text-primary-foreground shadow-lg shadow-accent/20">
+          <Sparkles className="size-7" />
+        </div>
+        <h2 className="mt-5 text-xl font-semibold">Your week is on track</h2>
+        <p className="mt-2 max-w-md text-sm text-muted-foreground">
+          Nothing needs your attention right now. When we spot scope creep,
+          estimate overruns, or over-capacity weeks, we'll suggest concrete
+          actions to rebalance your schedule here.
+        </p>
+      </div>
+
+      <div className="mt-8 grid w-full max-w-2xl grid-cols-3 gap-3">
+        {checks.map((c) => (
+          <div
+            key={c.title}
+            className="rounded-xl border border-border bg-surface-2/50 p-4 text-left"
+          >
+            <span
+              className={cn(
+                "flex size-8 items-center justify-center rounded-[10px]",
+                c.iconClass,
+              )}
+              style={{ backgroundColor: c.bg }}
+            >
+              <c.icon className="size-4" />
+            </span>
+            <h3 className="mt-3 text-sm font-semibold">{c.title}</h3>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              {c.text}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-6 grid w-full max-w-xl grid-cols-4 gap-4 rounded-xl border border-border bg-surface-2/30 px-5 py-4">
         <div className="text-center">
           <div className="tnum text-lg font-semibold">{formatHours(logged)}</div>
           <div className="text-xs text-muted-foreground">Logged</div>
