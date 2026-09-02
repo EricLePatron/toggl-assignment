@@ -81,6 +81,47 @@ export function completedEstimateUpdate(taskId: string) {
   return completedEstimateUpdates.get(taskId) ?? null;
 }
 
+/* ---------------- overrun resolutions (client-side, in-memory) ------------ */
+
+export type OverrunResolution = {
+  action: "updated" | "kept";
+  /** Estimate before the resolution (null when the task had none). */
+  from: number | null;
+  /** New estimate when action is "updated". */
+  to: number | null;
+};
+
+const resolvedOverruns = new Map<string, OverrunResolution>();
+
+/**
+ * Resolves an overrun signal: either the initial estimate is updated to a new
+ * value, or the overrun is accepted as-is. Mocked: lives in memory only and is
+ * reset on page reload. A resolved task no longer counts in the week status
+ * bar, but the Optimize card keeps showing it with a confirmation state.
+ */
+export function resolveOverrun(
+  taskId: string,
+  action: "updated" | "kept",
+  hours?: number,
+) {
+  const task = taskById(taskId);
+  const from = task ? taskEstimate(taskId, task.estimateHours) : null;
+  if (action === "updated" && hours != null && Number.isFinite(hours) && hours > 0) {
+    setTaskEstimate(taskId, hours);
+  }
+  resolvedOverruns.set(taskId, {
+    action,
+    from,
+    to: action === "updated" ? (hours ?? null) : null,
+  });
+  version++;
+  listeners.forEach((l) => l());
+}
+
+export function overrunResolution(taskId: string) {
+  return resolvedOverruns.get(taskId) ?? null;
+}
+
 function subscribe(l: () => void) {
   listeners.add(l);
   return () => listeners.delete(l);
@@ -181,6 +222,7 @@ export type OverrunTask = {
   overPct: number;
   overCost: number | null;
   repeat: OverrunRepeat | null;
+  resolved: OverrunResolution | null;
 };
 
 /** Base name shared by a task and its follow-up ("X — phase 2" → "X"). */
@@ -230,10 +272,13 @@ function findRepeat(source: {
  * Only surfaced for the displayed week when the task has logged activity
  * that week, so the Optimize page and the Calendar status bar stay in sync.
  */
-export function overrunTasks(week: WeekView): OverrunTask[] {
+export function overrunTasks(week: WeekView, includeResolved = false): OverrunTask[] {
   const rows: OverrunTask[] = [];
   for (const t of tasks) {
-    const estimate = taskEstimate(t.id, t.estimateHours);
+    const resolution = resolvedOverruns.get(t.id) ?? null;
+    if (resolution && !includeResolved) continue;
+    const liveEstimate = taskEstimate(t.id, t.estimateHours);
+    const estimate = resolution ? (resolution.from ?? liveEstimate) : liveEstimate;
     if (estimate == null) continue;
     const entries = timeEntries.filter((e) => e.taskId === t.id && isPastEntry(e));
     const logged = entries.reduce((s, e) => s + e.duration, 0);
@@ -266,6 +311,7 @@ export function overrunTasks(week: WeekView): OverrunTask[] {
         name: t.name,
         loggedRatio: logged / estimate,
       }),
+      resolved: resolution,
     });
   }
   return rows.sort((a, b) => b.overHours - a.overHours);
