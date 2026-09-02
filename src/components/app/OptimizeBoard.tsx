@@ -642,7 +642,8 @@ function CapacityCard({ week }: { week: WeekView }) {
     );
   }
 
-  const c = signal!.candidate!;
+  if (!signal || !signal.candidate) return null;
+  const c = signal.candidate;
 
   const targetDate = customSlot?.date ?? c.proposedDate;
   const targetStart = customSlot?.start ?? c.proposedStart;
