@@ -68,19 +68,26 @@ function ScopeCreepCard({ week }: { week: WeekView }) {
             Tasks logged this week that were never estimated.
           </p>
         </div>
-        <span
-          className="tnum ml-auto shrink-0 rounded-full border border-destructive/40 px-3 py-1 text-xs font-semibold text-destructive"
-          style={{
-            backgroundColor:
-              "color-mix(in oklab, var(--color-destructive) 10%, transparent)",
-          }}
-        >
-          {rows.length} task{rows.length > 1 ? "s" : ""} · {formatHours(totalHours)} ·{" "}
-          {money(totalAmount)}
-        </span>
+        {active.length > 0 ? (
+          <span
+            className="tnum ml-auto shrink-0 rounded-full border border-destructive/40 px-3 py-1 text-xs font-semibold text-destructive"
+            style={{
+              backgroundColor:
+                "color-mix(in oklab, var(--color-destructive) 10%, transparent)",
+            }}
+          >
+            {active.length} task{active.length > 1 ? "s" : ""} · {formatHours(totalHours)} ·{" "}
+            {money(totalAmount)}
+          </span>
+        ) : (
+          <span className="tnum ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-full border border-positive/40 bg-positive/10 px-3 py-1 text-xs font-semibold text-positive">
+            <CheckCircle2 className="size-3.5" />
+            Resolved
+          </span>
+        )}
       </div>
 
-      <div className="grid grid-cols-[minmax(0,1fr)_9rem_7rem_9rem_7rem] items-center gap-4 border-y border-border bg-surface-2/50 px-5 py-2 text-[11px] font-semibold uppercase tracking-wide text-subtle">
+      <div className="grid grid-cols-[minmax(0,1fr)_9rem_7rem_14rem_7rem] items-center gap-4 border-y border-border bg-surface-2/50 px-5 py-2 text-[11px] font-semibold uppercase tracking-wide text-subtle">
         <span>Project | Task</span>
         <span>Client</span>
         <span className="text-right">Logged time</span>
@@ -101,16 +108,19 @@ function ScopeCreepRow({ row }: { row: ReturnType<typeof scopeCreepTasks>[number
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState("");
   const project = projectById(row.projectId);
+  const res = row.resolved;
 
   const save = () => {
     const hours = Number(value.replace(",", ".").replace(/h/gi, "").trim());
-    if (Number.isFinite(hours) && hours > 0) setTaskEstimate(row.taskId, hours);
+    if (Number.isFinite(hours) && hours > 0) {
+      resolveScopeCreep(row.taskId, "estimated", hours);
+    }
     setEditing(false);
     setValue("");
   };
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_9rem_7rem_9rem_7rem] items-center gap-4 px-5 py-3 text-sm transition-colors hover:bg-surface-2/40">
+    <div className="grid grid-cols-[minmax(0,1fr)_9rem_7rem_14rem_7rem] items-center gap-4 px-5 py-3 text-sm transition-colors hover:bg-surface-2/40">
       <div className="flex min-w-0 items-center gap-2.5">
         <span
           className={cn(
@@ -126,7 +136,19 @@ function ScopeCreepRow({ row }: { row: ReturnType<typeof scopeCreepTasks>[number
       <div className="truncate text-muted-foreground">{row.client ?? "—"}</div>
       <div className="tnum text-right">{formatHours(row.hours)}</div>
       <div className="flex justify-center">
-        {editing ? (
+        {res ? (
+          res.action === "estimated" ? (
+            <span className="inline-flex items-center gap-1.5 rounded-[10px] border border-positive/40 bg-positive/10 px-2.5 py-1 text-xs font-medium text-positive">
+              <CheckCircle2 className="size-3.5 shrink-0" />
+              Estimate set to {formatHours(res.to ?? row.hours)}
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 rounded-[10px] border border-border bg-surface-2/60 px-2.5 py-1 text-xs text-muted-foreground">
+              <CheckCircle2 className="size-3.5 shrink-0" />
+              Left as is
+            </span>
+          )
+        ) : editing ? (
           <div className="flex items-center gap-1.5">
             <div
               className={cn(
@@ -152,15 +174,23 @@ function ScopeCreepRow({ row }: { row: ReturnType<typeof scopeCreepTasks>[number
             <span className="text-xs text-subtle">total</span>
           </div>
         ) : (
-          <button
-            className={cn(
-              "border border-dashed pill-dashed rounded-[10px] px-2.5 py-1 text-xs text-muted-foreground",
-              "transition-colors hover:border-accent hover:text-foreground",
-            )}
-            onClick={() => setEditing(true)}
-          >
-            Set estimate
-          </button>
+          <div className="flex items-center justify-center gap-1.5">
+            <button
+              className={cn(
+                "border border-dashed pill-dashed rounded-[10px] px-2.5 py-1 text-xs text-muted-foreground",
+                "transition-colors hover:border-accent hover:text-foreground",
+              )}
+              onClick={() => setEditing(true)}
+            >
+              Set estimate
+            </button>
+            <button
+              className="rounded-[10px] px-2.5 py-1 text-xs text-subtle transition-colors hover:text-foreground"
+              onClick={() => resolveScopeCreep(row.taskId, "kept")}
+            >
+              Leave as is
+            </button>
+          </div>
         )}
       </div>
       <div className="tnum text-right font-medium">
