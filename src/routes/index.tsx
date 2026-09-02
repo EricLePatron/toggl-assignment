@@ -266,12 +266,9 @@ function TimerScreen() {
                       <div
                         key={e.id}
                         className={cn(
-                          "absolute overflow-hidden rounded-lg px-2 py-1.5 text-[11px] leading-tight shadow-sm",
+                          "absolute overflow-hidden rounded-md px-2 py-1.5 text-[11px] leading-tight shadow-sm",
                           e.planned
-                            ? cn(
-                                "border border-dashed bg-transparent text-foreground/80",
-                                projectBorderClass[e.color],
-                              )
+                            ? cn("border text-foreground", projectPlannedClass[e.color])
                             : cn(
                                 "border border-black/20 text-black/85",
                                 projectColorClass[e.color],
@@ -289,8 +286,13 @@ function TimerScreen() {
                           <div className="truncate opacity-75">{e.subtitle}</div>
                         )}
                         {e.end - e.start >= 0.5 && (
-                          <div className="tnum absolute bottom-1 left-2 opacity-80">
-                            ⏱ {e.duration}
+                          <div className="tnum absolute bottom-1 left-2 flex items-center gap-1 opacity-80">
+                            {e.planned ? (
+                              <CalendarDays className="size-3" />
+                            ) : (
+                              <span>⏱</span>
+                            )}
+                            {e.duration}
                           </div>
                         )}
                         {e.billable && (
