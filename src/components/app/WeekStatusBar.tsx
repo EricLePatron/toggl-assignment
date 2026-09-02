@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { AlertTriangle, CheckCircle2, Clock3, Info } from "lucide-react";
-import { overrunTasks, scopeCreepTasks, isPastEntry, useEstimateOverrides } from "@/lib/week-signals";
+import { AlertTriangle, CalendarClock, CheckCircle2, Clock3, Info } from "lucide-react";
+import { capacityResolution, capacitySignal, overrunTasks, scopeCreepTasks, isPastEntry, useEstimateOverrides } from "@/lib/week-signals";
 import {
   formatHours,
   plannedEntries,
