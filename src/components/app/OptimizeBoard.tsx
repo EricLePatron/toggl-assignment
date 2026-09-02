@@ -789,7 +789,7 @@ function CapacityCard({ week }: { week: WeekView }) {
             initialStart={targetStart}
             onCancel={() => setPickerOpen(false)}
             onSave={(date, start) => {
-              moveTaskToNextWeek(c.taskId, date, start);
+              doMove(date, start);
               setPickerOpen(false);
               setCustomSlot(null);
             }}
@@ -817,8 +817,24 @@ function CapacityCard({ week }: { week: WeekView }) {
               Pick another date…
             </button>
             <button
+              className="pill text-muted-foreground"
+              onClick={() =>
+                resolveCapacity(week.from, {
+                  action: "kept",
+                  taskName: c.taskName,
+                  hours: c.hours,
+                  committed: signal.committed,
+                  overage: signal.overage,
+                  targetDate: null,
+                  targetStart: null,
+                })
+              }
+            >
+              Leave as is
+            </button>
+            <button
               className="pill border-info/50 text-foreground"
-              onClick={() => moveTaskToNextWeek(c.taskId, targetDate, targetStart)}
+              onClick={() => doMove(targetDate, targetStart)}
             >
               Move to {slotLabel(targetDate, targetStart)}
             </button>
