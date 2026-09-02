@@ -660,6 +660,20 @@ function CapacityCard({ week }: { week: WeekView }) {
     { icon: CheckCircle2, text: "No deadline this week" },
   ];
 
+  /** Moves the task AND marks the capacity signal resolved (frozen snapshot). */
+  const doMove = (date: string, start: number) => {
+    resolveCapacity(week.from, {
+      action: "moved",
+      taskName: c.taskName,
+      hours: c.hours,
+      committed: signal.committed,
+      overage: signal.overage,
+      targetDate: date,
+      targetStart: start,
+    });
+    moveTaskToNextWeek(c.taskId, date, start);
+  };
+
   return (
     <div
       className="panel overflow-hidden border-info/40"
