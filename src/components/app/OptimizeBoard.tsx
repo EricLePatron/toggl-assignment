@@ -806,7 +806,7 @@ function OptimizeEmptyState({ week }: { week: WeekView }) {
 
 export function OptimizeBoard({ week }: { week: WeekView }) {
   useEstimateOverrides();
-  const hasScopeCreep = scopeCreepTasks(week).length > 0;
+  const hasScopeCreep = scopeCreepTasks(week, true).length > 0;
   const hasOverrun = overrunTasks(week).length > 0;
   const hasCapacity = capacitySignal(week) != null;
   const hasSignals = hasScopeCreep || hasOverrun || hasCapacity;
