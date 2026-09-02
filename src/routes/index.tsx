@@ -57,13 +57,15 @@ export const Route = createFileRoute("/")({
   component: TimerScreen,
 });
 
-const projectBorderClass: Record<ProjectColor, string> = {
-  green: "border-positive",
-  pink: "border-accent-pink",
-  violet: "border-accent",
-  orange: "border-warning",
-  teal: "border-[oklch(0.75_0.13_195)]",
-  red: "border-destructive",
+/* Planned entries: Toggl style — solid tinted fill in the project color,
+   subtle stronger border, no dashed outline. */
+const projectPlannedClass: Record<ProjectColor, string> = {
+  green: "border-positive/50 bg-positive/20",
+  pink: "border-accent-pink/50 bg-accent-pink/20",
+  violet: "border-accent/50 bg-accent/20",
+  orange: "border-warning/50 bg-warning/20",
+  teal: "border-[oklch(0.75_0.13_195)]/50 bg-[oklch(0.75_0.13_195)]/20",
+  red: "border-destructive/50 bg-destructive/20",
 };
 
 const START_HOUR = 3;
