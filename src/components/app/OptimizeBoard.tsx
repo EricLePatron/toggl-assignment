@@ -44,10 +44,11 @@ import { cn } from "@/lib/utils";
 const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 
 function ScopeCreepCard({ week }: { week: WeekView }) {
-  const rows = scopeCreepTasks(week);
+  const rows = scopeCreepTasks(week, true);
   if (rows.length === 0) return null;
-  const totalHours = rows.reduce((s, r) => s + r.hours, 0);
-  const totalAmount = rows.reduce((s, r) => s + (r.amount ?? 0), 0);
+  const active = rows.filter((r) => !r.resolved);
+  const totalHours = active.reduce((s, r) => s + r.hours, 0);
+  const totalAmount = active.reduce((s, r) => s + (r.amount ?? 0), 0);
 
   return (
     <div className="panel overflow-hidden border-destructive/35">
