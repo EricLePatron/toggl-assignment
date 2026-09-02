@@ -27,12 +27,14 @@ import {
 
 import { Card } from "@/components/app/primitives";
 import {
+  capacityResolution,
   capacitySignal,
   committedHoursForWeek,
   completedEstimateUpdate,
   isPastEntry,
   moveTaskToNextWeek,
   overrunTasks,
+  resolveCapacity,
   resolveOverrun,
   resolveScopeCreep,
   scopeCreepTasks,
@@ -581,8 +583,66 @@ function formatPlannedDates(dates: string[]) {
 function CapacityCard({ week }: { week: WeekView }) {
   const [customSlot, setCustomSlot] = useState<{ date: string; start: number } | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const resolution = capacityResolution(week);
   const signal = capacitySignal(week);
-  if (!signal || !signal.candidate || !signal.canMove) return null;
+  if (!resolution && (!signal || !signal.candidate || !signal.canMove)) return null;
+
+  /* ---- Resolved state: frozen confirmation, no live recalculation ------ */
+  if (resolution) {
+    return (
+      <div
+        className="panel overflow-hidden border-info/40"
+        style={{
+          backgroundColor: "color-mix(in oklab, var(--color-info) 8%, transparent)",
+        }}
+      >
+        <div className="flex items-center gap-3 px-5 py-4">
+          <span
+            className="flex size-8 shrink-0 items-center justify-center rounded-[10px] text-info"
+            style={{
+              backgroundColor:
+                "color-mix(in oklab, var(--color-info) 16%, transparent)",
+            }}
+          >
+            <CalendarClock className="size-4" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-base font-semibold">Your week is over capacity</h2>
+            <p className="tnum pt-0.5 text-sm text-muted-foreground">
+              Capacity {formatHours(WEEKLY_CAPACITY)} · committed{" "}
+              <span className="font-semibold text-foreground">
+                {formatHours(resolution.committed)}
+              </span>{" "}
+              · +{formatHours(resolution.overage)} over
+            </p>
+          </div>
+          <span className="tnum ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-full border border-positive/40 bg-positive/10 px-3 py-1 text-xs font-semibold text-positive">
+            <CheckCircle2 className="size-3.5" />
+            Resolved
+          </span>
+        </div>
+        <div className="border-t border-info/25 px-5 py-4">
+          {resolution.action === "moved" ? (
+            <span className="inline-flex items-center gap-2 rounded-[10px] border border-positive/40 bg-positive/10 px-3 py-2 text-sm text-positive">
+              <CheckCircle2 className="size-4 shrink-0" />
+              Moved {resolution.taskName} ({formatHours(resolution.hours)}) to{" "}
+              {resolution.targetDate != null && resolution.targetStart != null
+                ? slotLabel(resolution.targetDate, resolution.targetStart)
+                : "next week"}
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-2 rounded-[10px] border border-border bg-surface-2/60 px-3 py-2 text-sm text-muted-foreground">
+              <CheckCircle2 className="size-4 shrink-0" />
+              Left as is — the week stays +{formatHours(resolution.overage)} over
+              capacity
+            </span>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (!signal || !signal.candidate) return null;
   const c = signal.candidate;
 
   const targetDate = customSlot?.date ?? c.proposedDate;
@@ -599,6 +659,20 @@ function CapacityCard({ week }: { week: WeekView }) {
     { icon: CheckCircle2, text: `${c.priority} priority — lower than locked-in cutover work` },
     { icon: CheckCircle2, text: "No deadline this week" },
   ];
+
+  /** Moves the task AND marks the capacity signal resolved (frozen snapshot). */
+  const doMove = (date: string, start: number) => {
+    resolveCapacity(week.from, {
+      action: "moved",
+      taskName: c.taskName,
+      hours: c.hours,
+      committed: signal.committed,
+      overage: signal.overage,
+      targetDate: date,
+      targetStart: start,
+    });
+    moveTaskToNextWeek(c.taskId, date, start);
+  };
 
   return (
     <div
@@ -729,7 +803,7 @@ function CapacityCard({ week }: { week: WeekView }) {
             initialStart={targetStart}
             onCancel={() => setPickerOpen(false)}
             onSave={(date, start) => {
-              moveTaskToNextWeek(c.taskId, date, start);
+              doMove(date, start);
               setPickerOpen(false);
               setCustomSlot(null);
             }}
@@ -757,8 +831,24 @@ function CapacityCard({ week }: { week: WeekView }) {
               Pick another date…
             </button>
             <button
+              className="pill text-muted-foreground"
+              onClick={() =>
+                resolveCapacity(week.from, {
+                  action: "kept",
+                  taskName: c.taskName,
+                  hours: c.hours,
+                  committed: signal.committed,
+                  overage: signal.overage,
+                  targetDate: null,
+                  targetStart: null,
+                })
+              }
+            >
+              Leave as is
+            </button>
+            <button
               className="pill border-info/50 text-foreground"
-              onClick={() => moveTaskToNextWeek(c.taskId, targetDate, targetStart)}
+              onClick={() => doMove(targetDate, targetStart)}
             >
               Move to {slotLabel(targetDate, targetStart)}
             </button>
@@ -808,7 +898,7 @@ export function OptimizeBoard({ week }: { week: WeekView }) {
   useEstimateOverrides();
   const hasScopeCreep = scopeCreepTasks(week, true).length > 0;
   const hasOverrun = overrunTasks(week).length > 0;
-  const hasCapacity = capacitySignal(week) != null;
+  const hasCapacity = capacitySignal(week) != null || capacityResolution(week) != null;
   const hasSignals = hasScopeCreep || hasOverrun || hasCapacity;
 
   if (!hasSignals) {

@@ -158,6 +158,38 @@ export function overrunResolution(taskId: string) {
   return resolvedOverruns.get(taskId) ?? null;
 }
 
+/* ---------------- capacity resolutions (client-side, in-memory) ----------- */
+
+export type CapacityResolution = {
+  action: "moved" | "kept";
+  taskName: string | null;
+  hours: number;
+  committed: number;
+  overage: number;
+  targetDate: string | null;
+  targetStart: number | null;
+};
+
+/** Keyed by week start (YYYY-MM-DD). */
+const resolvedCapacity = new Map<string, CapacityResolution>();
+
+/**
+ * Resolves an over-capacity signal for a week: either the suggested task was
+ * moved to next week, or the overage was accepted as-is. Mocked: lives in
+ * memory only and is reset on page reload. A resolved week no longer counts
+ * in the week status bar, but the Optimize card keeps showing a frozen
+ * confirmation state.
+ */
+export function resolveCapacity(weekFrom: string, resolution: CapacityResolution) {
+  resolvedCapacity.set(weekFrom, resolution);
+  version++;
+  listeners.forEach((l) => l());
+}
+
+export function capacityResolution(week: WeekView) {
+  return resolvedCapacity.get(week.from) ?? null;
+}
+
 function subscribe(l: () => void) {
   listeners.add(l);
   return () => listeners.delete(l);

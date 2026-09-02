@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { AlertTriangle, CheckCircle2, Clock3, Info } from "lucide-react";
-import { overrunTasks, scopeCreepTasks, isPastEntry, useEstimateOverrides } from "@/lib/week-signals";
+import { AlertTriangle, CalendarClock, CheckCircle2, Clock3, Info } from "lucide-react";
+import { capacityResolution, capacitySignal, overrunTasks, scopeCreepTasks, isPastEntry, useEstimateOverrides } from "@/lib/week-signals";
 import {
   formatHours,
   plannedEntries,
@@ -32,9 +32,10 @@ type Signal =
       logged: number;
       estimate: number;
     }
+  | { kind: "capacity"; committed: number; capacity: number; overage: number }
   | { kind: "uncovered"; hours: number; projectName: string };
 
-type Severity = "critical" | "warning" | "info" | "healthy";
+type Severity = "critical" | "capacity" | "warning" | "info" | "healthy";
 
 type WeekStatus = {
   severity: Severity;
@@ -70,7 +71,22 @@ function computeSignals(week: WeekView): Signal[] {
       };
     });
 
-  /* 2. Overrun: had an estimate, past logged time exceeds it, active this week */
+  /* 2. Over capacity — committed (logged + planned) exceeds weekly capacity.
+     Resolved weeks no longer surface here (see resolveCapacity). */
+  const cap = capacitySignal(week);
+  const capacity: Signal[] =
+    cap && !capacityResolution(week)
+      ? [
+          {
+            kind: "capacity" as const,
+            committed: cap.committed,
+            capacity: cap.capacity,
+            overage: cap.overage,
+          },
+        ]
+      : [];
+
+  /* 3. Overrun: had an estimate, past logged time exceeds it, active this week */
   const overrun: Signal[] = overrunTasks(week).map((t) => ({
     kind: "overrun" as const,
     projectName: t.projectName,
@@ -98,7 +114,7 @@ function computeSignals(week: WeekView): Signal[] {
         ]
       : [];
 
-  return [...scopeCreep, ...overrun, ...secondary];
+  return [...scopeCreep, ...capacity, ...overrun, ...secondary];
 }
 
 function computeWeekStatus(week: WeekView): WeekStatus {
@@ -124,6 +140,13 @@ function computeWeekStatus(week: WeekView): WeekStatus {
         `${formatHours(main.hours)} off-scope` +
         (main.amount != null ? ` (~€${main.amount.toLocaleString("en-US")})` : "") +
         moreSuffix,
+    };
+  }
+  if (main.kind === "capacity") {
+    return {
+      severity: "capacity",
+      primary: "Your week is over capacity",
+      secondary: `${formatHours(main.committed)} committed vs ${formatHours(main.capacity)} capacity · +${formatHours(main.overage)} over${moreSuffix}`,
     };
   }
   if (main.kind === "overrun") {
@@ -152,6 +175,11 @@ const severityStyle: Record<
     icon: AlertTriangle,
     iconClass: "text-destructive",
     tint: "color-mix(in oklab, var(--color-destructive) 10%, transparent)",
+  },
+  capacity: {
+    icon: CalendarClock,
+    iconClass: "text-info",
+    tint: "color-mix(in oklab, var(--color-info) 8%, transparent)",
   },
   warning: {
     icon: Clock3,
@@ -237,6 +265,7 @@ export function WeekStatusBar({ week }: { week: WeekView }) {
           "group flex cursor-pointer items-center gap-4 rounded-xl border border-border px-4 py-2.5 transition-colors hover:border-muted-foreground/40",
           status.severity === "critical" && "border-destructive/40",
           status.severity === "warning" && "border-warning/40",
+          status.severity === "capacity" && "border-info/40",
         )}
         style={style.tint ? { backgroundColor: style.tint } : undefined}
       >
