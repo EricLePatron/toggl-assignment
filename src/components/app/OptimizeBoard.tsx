@@ -245,6 +245,7 @@ function OverrunCard({ week }: { week: WeekView }) {
 
 function OverrunRow({ row }: { row: ReturnType<typeof overrunTasks>[number] }) {
   const [editing, setEditing] = useState(false);
+  const [editingRepeat, setEditingRepeat] = useState(false);
   const [value, setValue] = useState("");
 
   const repeat = row.repeat;
