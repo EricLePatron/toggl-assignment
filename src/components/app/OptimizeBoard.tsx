@@ -170,31 +170,70 @@ function ScopeCreepRow({ row }: { row: ReturnType<typeof scopeCreepTasks>[number
 
 
 function OverrunCard({ week }: { week: WeekView }) {
-  const rows = overrunTasks(week);
+  const rows = overrunTasks(week, true);
   if (rows.length === 0) return null;
-  const totalOver = rows.reduce((s, r) => s + r.overHours, 0);
-  const totalCost = rows.reduce((s, r) => s + (r.overCost ?? 0), 0);
+  const active = rows.filter((r) => !r.resolved);
+  const totalOver = active.reduce((s, r) => s + r.overHours, 0);
+  const totalCost = active.reduce((s, r) => s + (r.overCost ?? 0), 0);
+  const totalEstimate = active.reduce((s, r) => s + r.estimate, 0);
+  const totalLogged = active.reduce((s, r) => s + r.logged, 0);
 
   return (
-    <div className="panel overflow-hidden border-warning/50">
+    <div
+      className="panel overflow-hidden border-warning/40"
+      style={{
+        backgroundColor: "color-mix(in oklab, var(--color-warning) 8%, transparent)",
+      }}
+    >
       <div className="flex items-center gap-3 px-5 py-4">
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-[10px] border border-warning/40 text-warning">
+        <span
+          className="flex size-8 shrink-0 items-center justify-center rounded-[10px] text-warning"
+          style={{
+            backgroundColor:
+              "color-mix(in oklab, var(--color-warning) 16%, transparent)",
+          }}
+        >
           <Clock3 className="size-4" />
         </span>
         <div className="min-w-0 flex-1">
           <h2 className="text-base font-semibold">Estimate overrun</h2>
-          <p className="pt-0.5 text-sm text-muted-foreground">
-            Tasks whose total logged time exceeds their estimate. Shown when they
-            have activity this week.
+          <p className="tnum pt-0.5 text-sm text-muted-foreground">
+            {active.length > 0 ? (
+              <>
+                Estimated {formatHours(totalEstimate)} · logged{" "}
+                <span className="font-semibold text-foreground">
+                  {formatHours(totalLogged)}
+                </span>{" "}
+                ·{" "}
+                <span className="font-semibold text-warning">
+                  +{formatHours(totalOver)} over
+                </span>
+              </>
+            ) : (
+              "All overruns handled for this week."
+            )}
           </p>
         </div>
-        <span className="tnum ml-auto shrink-0 rounded-full border border-warning/40 px-3 py-1 text-xs font-semibold text-warning">
-          {rows.length} task{rows.length > 1 ? "s" : ""} · +{formatHours(totalOver)} ·{" "}
-          {money(totalCost)}
-        </span>
+        {active.length > 0 ? (
+          <span
+            className="tnum ml-auto shrink-0 rounded-full border border-warning/40 px-3 py-1 text-xs font-semibold text-warning"
+            style={{
+              backgroundColor:
+                "color-mix(in oklab, var(--color-warning) 10%, transparent)",
+            }}
+          >
+            {active.length} task{active.length > 1 ? "s" : ""} · +{formatHours(totalOver)} ·{" "}
+            {money(totalCost)}
+          </span>
+        ) : (
+          <span className="tnum ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-full border border-positive/40 bg-positive/10 px-3 py-1 text-xs font-semibold text-positive">
+            <CheckCircle2 className="size-3.5" />
+            Resolved
+          </span>
+        )}
       </div>
 
-      <div className="divide-y divide-border border-t border-border">
+      <div className="divide-y divide-border border-t border-warning/25">
         {rows.map((r) => (
           <OverrunRow key={r.taskId} row={r} />
         ))}
@@ -214,6 +253,7 @@ function OverrunRow({ row }: { row: ReturnType<typeof overrunTasks>[number] }) {
   const liveSuggested = repeat?.suggestedEstimate ?? Math.ceil(row.logged * 2) / 2;
   const suggested = done?.to ?? liveSuggested;
   const previousEstimate = done ? done.from : (repeat?.estimate ?? null);
+  const res = row.resolved;
 
   const apply = (hours: number, taskId: string) => {
     if (!Number.isFinite(hours) || hours <= 0) return;
@@ -225,68 +265,144 @@ function OverrunRow({ row }: { row: ReturnType<typeof overrunTasks>[number] }) {
     setValue("");
   };
 
+  const applyInitial = (hours: number) => {
+    if (!Number.isFinite(hours) || hours <= 0) return;
+    resolveOverrun(row.taskId, "updated", hours);
+    setEditing(false);
+    setValue("");
+  };
+
   const pct = Math.min(100, Math.round((row.estimate / row.logged) * 100));
 
   return (
     <div className="px-5 py-4">
-      {/* --- Overrunning task, main info -------------------------------- */}
-      <div className="rounded-[10px] border border-warning/40 bg-surface-2/60 p-3">
-        <div className="flex items-start gap-3">
-          <Clock3 className="mt-0.5 size-5 shrink-0 text-warning" />
-          <div className="min-w-0 flex-1">
-            <div className="truncate text-sm font-medium">{row.taskName}</div>
-            <div className="flex flex-wrap items-center gap-2 pt-2">
-              <span className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2 py-1 text-xs">
-                <FolderKanban
-                  className={cn("size-3.5", projectColorClass[row.projectColor])}
-                />
-                <span className="max-w-[12rem] truncate">{row.projectName}</span>
+      {/* --- Overrunning task, compact single block --------------------- */}
+      <div className="flex items-start gap-3">
+        <Clock3 className="mt-0.5 size-5 shrink-0 text-warning" />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span className="truncate text-sm font-medium">{row.taskName}</span>
+            <span className="tnum shrink-0 rounded-lg border border-warning/40 px-2 py-0.5 text-xs font-semibold text-warning">
+              +{formatHours(row.overHours)} · +{row.overPct}%
+            </span>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 pt-2">
+            <span className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2 py-1 text-xs">
+              <FolderKanban
+                className={cn("size-3.5", projectColorClass[row.projectColor])}
+              />
+              <span className="max-w-[12rem] truncate">{row.projectName}</span>
+            </span>
+            {row.client && (
+              <span className="inline-flex items-center rounded-lg border border-border bg-surface px-2 py-1 text-xs text-muted-foreground">
+                {row.client}
               </span>
-              {row.client && (
-                <span className="inline-flex items-center rounded-lg border border-border bg-surface px-2 py-1 text-xs text-muted-foreground">
-                  {row.client}
-                </span>
-              )}
-              <span className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2 py-1 text-xs">
-                <span className="size-1.5 rounded-full bg-current" />
-                {row.status}
+            )}
+            <span className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2 py-1 text-xs">
+              <span className="size-1.5 rounded-full bg-current" />
+              {row.status}
+            </span>
+            {row.tag && (
+              <span className="inline-flex items-center rounded-lg border border-border bg-surface px-2 py-1 text-xs text-muted-foreground">
+                {row.tag}
               </span>
-              {row.tag && (
-                <span className="inline-flex items-center rounded-lg border border-border bg-surface px-2 py-1 text-xs text-muted-foreground">
-                  {row.tag}
+            )}
+            {row.rate != null && (
+              <span className="tnum inline-flex items-center rounded-lg border border-border bg-surface px-2 py-1 text-xs text-muted-foreground">
+                {money(row.rate)}/h
+              </span>
+            )}
+          </div>
+
+          {/* estimate vs logged bar */}
+          <div className="pt-3">
+            <div className="relative h-2 overflow-hidden rounded-full bg-surface-2">
+              <div className="h-full rounded-full bg-warning" style={{ width: `${pct}%` }} />
+            </div>
+            <div className="tnum flex items-center justify-between pt-1.5 text-xs text-muted-foreground">
+              <span>
+                Estimated{" "}
+                <span className="font-semibold text-foreground">
+                  {formatHours(row.estimate)}
                 </span>
-              )}
-              {row.rate != null && (
-                <span className="tnum inline-flex items-center rounded-lg border border-border bg-surface px-2 py-1 text-xs text-muted-foreground">
-                  {money(row.rate)}/h
+              </span>
+              <span>
+                Logged{" "}
+                <span className="font-semibold text-warning">
+                  {formatHours(row.logged)}
                 </span>
-              )}
+                {row.overCost != null && ` · ${money(row.overCost)} over budget`}
+              </span>
             </div>
           </div>
-          <span className="tnum shrink-0 rounded-lg border border-warning/40 px-2.5 py-1 text-xs font-semibold text-warning">
-            +{formatHours(row.overHours)} · +{row.overPct}%
-          </span>
-        </div>
 
-        {/* estimate vs logged bar */}
-        <div className="pt-3">
-          <div className="relative h-2 overflow-hidden rounded-full bg-surface-2">
-            <div className="h-full rounded-full bg-warning" style={{ width: `${pct}%` }} />
-          </div>
-          <div className="tnum flex items-center justify-between pt-1.5 text-xs text-muted-foreground">
-            <span>
-              Estimated{" "}
-              <span className="font-semibold text-foreground">
-                {formatHours(row.estimate)}
-              </span>
-            </span>
-            <span>
-              Logged{" "}
-              <span className="font-semibold text-warning">
-                {formatHours(row.logged)}
-              </span>
-              {row.overCost != null && ` · ${money(row.overCost)} over budget`}
-            </span>
+          {/* --- Resolve the initial estimate --------------------------- */}
+          <div className="flex flex-wrap items-center gap-2 pt-3">
+            {res ? (
+              res.action === "updated" ? (
+                <span className="inline-flex items-center gap-2 rounded-[10px] border border-positive/40 bg-positive/10 px-3 py-2 text-sm text-positive">
+                  <CheckCircle2 className="size-4 shrink-0" />
+                  Initial estimate updated to {formatHours(res.to ?? row.logged)}
+                  {res.from != null && (
+                    <span className="tnum text-xs text-positive/70">
+                      (was {formatHours(res.from)})
+                    </span>
+                  )}
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-2 rounded-[10px] border border-border bg-surface-2/60 px-3 py-2 text-sm text-muted-foreground">
+                  <CheckCircle2 className="size-4 shrink-0" />
+                  Left as is — estimate stays {formatHours(row.estimate)}
+                </span>
+              )
+            ) : editing ? (
+              <>
+                <div className="flex items-center rounded-[10px] border border-accent bg-surface-2 px-2 py-1.5 ring-2 ring-accent/25">
+                  <input
+                    autoFocus
+                    value={value}
+                    onChange={(e) => setValue(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter")
+                        applyInitial(Number(value.replace(",", ".")));
+                      if (e.key === "Escape") setEditing(false);
+                    }}
+                    placeholder={String(row.logged)}
+                    aria-label={`New initial estimate in hours for ${row.taskName}`}
+                    className="tnum w-14 bg-transparent text-right text-sm outline-none"
+                  />
+                  <span className="pl-0.5 text-sm text-muted-foreground">h</span>
+                </div>
+                <button
+                  className="grad-accent rounded-[10px] px-3 py-2 text-sm font-semibold text-primary-foreground"
+                  onClick={() => applyInitial(Number(value.replace(",", ".")))}
+                >
+                  Save
+                </button>
+                <button className="pill" onClick={() => setEditing(false)}>
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  className="grad-accent inline-flex items-center gap-2 rounded-[10px] px-3.5 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+                  onClick={() => applyInitial(row.logged)}
+                >
+                  <CheckCircle2 className="size-4" />
+                  Update initial estimate to {formatHours(row.logged)}
+                </button>
+                <button className="pill" onClick={() => setEditing(true)}>
+                  Custom value…
+                </button>
+                <button
+                  className="pill text-muted-foreground"
+                  onClick={() => resolveOverrun(row.taskId, "kept")}
+                >
+                  Leave as is
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
