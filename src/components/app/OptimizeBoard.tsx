@@ -11,6 +11,7 @@ import {
   Clock3,
   FolderKanban,
   MoveRight,
+  Sparkles,
 } from "lucide-react";
 import {
   currentUser,
